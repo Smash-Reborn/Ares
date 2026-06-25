@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${modid}",
+  "name": "Ares",
+  "description": "Quality-of-life client mod for SSM Reborn mini-games.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["SSM Reborn"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

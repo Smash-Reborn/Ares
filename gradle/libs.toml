@@ -1,0 +1,40 @@
+[versions]
+minecraft = "1.8.9"
+forge = "1.8.9-11.15.1.2318-1.8.9"
+mcp-mappings = "22-1.8.9"
+lombok = "1.18.34"
+fastutil = "8.5.13"
+log4j = "2.17.2"
+jetbrains-annotations = "24.1.0"
+gson = "2.10.1"
+mixin-runtime = "0.7.11-SNAPSHOT"
+mixin-processor = "0.8.5-SNAPSHOT"
+devauth = "1.2.1"
+essential-loom = "0.10.0.5"
+architectury-pack200 = "0.1.3"
+shadow = "8.1.1"
+foojay-resolver = "0.8.0"
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
+mcp-mappings = { module = "de.oceanlabs.mcp:mcp_stable", version.ref = "mcp-mappings" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+mixin-runtime = { module = "org.spongepowered:mixin", version.ref = "mixin-runtime" }
+mixin-processor = { module = "org.spongepowered:mixin", version.ref = "mixin-processor" }
+devauth = { module = "me.djtheredstoner:DevAuth-forge-legacy", version.ref = "devauth" }
+
+[plugins]
+essential-loom = { id = "gg.essential.loom", version.ref = "essential-loom" }
+architectury-pack200 = { id = "dev.architectury.architectury-pack200", version.ref = "architectury-pack200" }
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }
+
+[bundles]
+common-compile = ["jetbrains-annotations", "log4j-api"]
+common-implementation = ["fastutil", "gson"]
+common-shadow = ["fastutil", "gson"]

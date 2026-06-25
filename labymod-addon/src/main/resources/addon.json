@@ -1,0 +1,10 @@
+{
+  "uuid": "%uuid%",
+  "name": "Ares",
+  "mainClass": "sh.smsh.ares.labymod.AresLabyAddon",
+  "description": "Quality-of-life client addon for SSM Reborn mini-games. (v${version})",
+  "version": ${hotfix},
+  "author": "SSM Reborn",
+  "category": 5,
+  "icon": ""
+}
