@@ -1,6 +1,6 @@
 # Ares (AresMod)
 
-Client-side quality-of-life mod for **Minecraft 1.8.9**, built for the SSM Reborn mini-game server network.
+Client-side quality-of-life mod for **Minecraft 1.8.9**, built for Super Smash Mob gameplay servers (Mineplex, Smash Reborn, etc).
 
 This project produces **two installable artifacts**:
 
