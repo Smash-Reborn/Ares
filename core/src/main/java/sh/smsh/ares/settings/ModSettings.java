@@ -38,4 +38,12 @@ public final class ModSettings {
     public static float getRenderDistanceWeight() {
         return config.getExtendedRenderDistance().getRenderDistanceWeight();
     }
+
+    public static boolean shouldDisableArrowBouncingAnimation() {
+        return config.isDisableArrowBouncingAnimation();
+    }
+
+    public static boolean shouldDisableRandomEndermanTeleports() {
+        return config.isDisableRandomEndermanTeleports();
+    }
 }

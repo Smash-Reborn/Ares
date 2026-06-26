@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 public class ModSettingsConfig {
 
     private ExtendedRenderDistanceSettings extendedRenderDistance = new ExtendedRenderDistanceSettings();
+    private boolean disableArrowBouncingAnimation = true;
+    private boolean disableRandomEndermanTeleports = true;
 
     @Data
     @NoArgsConstructor
