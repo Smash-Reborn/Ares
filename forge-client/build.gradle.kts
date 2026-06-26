@@ -21,7 +21,7 @@ sourceSets.main {
 
 repositories {
     mavenCentral()
-    maven("https://repo.spongepowered.org/maven/")
+    maven("https://maven.fabricmc.net")
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
 }
 
@@ -48,6 +48,11 @@ dependencies {
     shadowImpl(libs.mixin.runtime) {
         isTransitive = false
     }
+    shadowImpl(libs.asm.core)
+    shadowImpl(libs.asm.tree)
+    shadowImpl(libs.asm.commons)
+    shadowImpl(libs.asm.util)
+    shadowImpl(libs.mixin.guava)
     annotationProcessor(libs.mixin.processor)
 
     runtimeOnly(libs.devauth)

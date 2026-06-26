@@ -19,7 +19,7 @@ Version format: **X.Y.ZZZ** (major.minor.hotfix). Current version is set in `gra
 
 ## Requirements
 
-- **JDK 17** for Gradle (set `JAVA_HOME` if your default Java is newer than Gradle supports)
+- **JDK 17/21** for Gradle (set `JAVA_HOME` if your default Java is newer than Gradle supports)
 - **JDK 8** for the Minecraft project SDK
 - IntelliJ IDEA recommended
 
@@ -47,6 +47,30 @@ Example:
 ```
 
 The file is created automatically on first launch. Check logs for `Ares active on <server>` or `Ares inactive - server not whitelisted`.
+
+## Mod settings
+
+Global feature flags and defaults live in:
+
+```
+.minecraft/config/AresMod/settings.json
+```
+
+Example:
+
+```json
+{
+  "extendedRenderDistance": {
+    "enabled": true,
+    "renderDistanceWeight": 12.0
+  }
+}
+```
+
+- `extendedRenderDistance.enabled` — toggles extended entity render distance (still requires a whitelisted server)
+- `extendedRenderDistance.renderDistanceWeight` — multiplier applied to each entity's `renderDistanceWeight` (vanilla default is `1.0`; higher values keep entities visible from farther away)
+
+The file is created automatically on first launch. Settings are reloaded when you connect to a server.
 
 ## Installing for players
 

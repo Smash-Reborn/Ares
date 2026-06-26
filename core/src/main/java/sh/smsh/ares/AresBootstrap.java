@@ -5,8 +5,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import sh.smsh.ares.config.ModSettingsConfig;
 import sh.smsh.ares.config.ServerWhitelistConfig;
 import sh.smsh.ares.gate.ServerGate;
+import sh.smsh.ares.settings.ModSettings;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,27 +20,48 @@ public final class AresBootstrap {
 
     @NotNull private static final Gson GSON = new Gson();
 
-    public static void initialize(@NotNull final Path configPath, @NotNull final String defaultConfigResource, @NotNull final ClassLoader classLoader) {
-        ServerGate.initialize(configPath, loadDefaultConfig(defaultConfigResource, classLoader));
+    public static void initialize(@NotNull final Path configDir, @NotNull final ClassLoader classLoader) {
+        ServerGate.initialize(
+                configDir.resolve(AresConstants.SERVERS_CONFIG_FILE),
+                loadDefaultConfig("default_servers.json", ServerWhitelistConfig.class, classLoader));
+        ModSettings.initialize(
+                configDir.resolve(AresConstants.SETTINGS_CONFIG_FILE),
+                loadDefaultConfig("default_settings.json", ModSettingsConfig.class, classLoader));
     }
 
     public static void reloadConfig() {
         ServerGate.reloadConfig();
+        ModSettings.reloadConfig();
     }
 
     @ApiStatus.Internal
-    @NotNull private static ServerWhitelistConfig loadDefaultConfig(@NotNull final String resourcePath, @NotNull final ClassLoader classLoader) {
+    @NotNull private static <T> T loadDefaultConfig(
+            @NotNull final String resourcePath,
+            @NotNull final Class<T> type,
+            @NotNull final ClassLoader classLoader) {
+
         final InputStream stream = classLoader.getResourceAsStream(resourcePath);
 
         if (stream == null) {
-            return new ServerWhitelistConfig();
+            try {
+                return type.getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                throw new IllegalStateException("Failed to create default config for " + type.getSimpleName(), ex);
+            }
         }
 
         try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-            ServerWhitelistConfig config = GSON.fromJson(reader, ServerWhitelistConfig.class);
-            return config != null ? config : new ServerWhitelistConfig();
+            final T config = GSON.fromJson(reader, type);
+
+            if (config != null) {
+                return config;
+            }
+        } catch (Exception ignored) { }
+
+        try {
+            return type.getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
-            return new ServerWhitelistConfig();
+            throw new IllegalStateException("Failed to create default config for " + type.getSimpleName(), ex);
         }
     }
 }

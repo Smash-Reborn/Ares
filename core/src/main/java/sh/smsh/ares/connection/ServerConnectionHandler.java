@@ -40,9 +40,9 @@ public final class ServerConnectionHandler {
         }
 
         if (ServerGate.isAllowed()) {
-            AresLog.LOGGER.info(AresConstants.MOD_NAME + " active on {}", address);
+            AresLog.LOGGER.info(AresConstants.MOD_NAME + " active on " + address);
         } else {
-            AresLog.LOGGER.info(AresConstants.MOD_NAME + " inactive - server not whitelisted ({})", address);
+            AresLog.LOGGER.info(AresConstants.MOD_NAME + " inactive - server not whitelisted (" + address + ")");
         }
     }
 }

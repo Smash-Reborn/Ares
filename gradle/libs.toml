@@ -7,8 +7,12 @@ fastutil = "8.5.13"
 log4j = "2.17.2"
 jetbrains-annotations = "24.1.0"
 gson = "2.10.1"
-mixin-runtime = "0.7.11-SNAPSHOT"
-mixin-processor = "0.8.5-SNAPSHOT"
+# FabricMC mirror of SpongePowered Mixin (repo.spongepowered.org is often unreachable).
+# 0.7.11.x on FabricMC omits MixinTweaker; Forge 1.8.9 needs 0.8.x for LaunchWrapper.
+mixin-runtime = "0.8.2+build.24"
+mixin-processor = "0.8.2+build.24"
+asm = "7.2"
+guava-mixin = "21.0"
 devauth = "1.2.1"
 essential-loom = "0.10.0.5"
 architectury-pack200 = "0.1.3"
@@ -24,8 +28,13 @@ fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-mixin-runtime = { module = "org.spongepowered:mixin", version.ref = "mixin-runtime" }
-mixin-processor = { module = "org.spongepowered:mixin", version.ref = "mixin-processor" }
+mixin-runtime = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin-runtime" }
+mixin-processor = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin-processor" }
+asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
+asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
+asm-util = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
+mixin-guava = { module = "com.google.guava:guava", version.ref = "guava-mixin" }
 devauth = { module = "me.djtheredstoner:DevAuth-forge-legacy", version.ref = "devauth" }
 
 [plugins]

@@ -1,0 +1,6 @@
+{
+  "extendedRenderDistance": {
+    "enabled": true,
+    "renderDistanceWeight": 12.0
+  }
+}

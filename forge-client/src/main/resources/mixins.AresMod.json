@@ -1,9 +1,11 @@
 {
   "required": true,
-  "package": "${mixinGroup}",
-  "refmap": "mixins.${modid}.refmap.json",
+  "package": "sh.smsh.ares.mixin",
+  "refmap": "mixins.AresMod.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [],
-  "client": [],
+  "client": [
+    "MixinWorldClient"
+  ],
   "server": []
 }
