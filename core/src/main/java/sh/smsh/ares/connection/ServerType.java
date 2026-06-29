@@ -11,15 +11,15 @@ import java.util.List;
 public enum ServerType {
 
     // == DEFAULT ==
-    UNKNOWN(),
+    UNKNOWN("NONE"),
 
     // include all mineplex domains
-    MINEPLEX(
+    MINEPLEX("MINEPLEX",
             "mineplex.com",
             "us.mineplex.com",
             "play.mineplex.com"),
 
-    SSM_REBORN_LEGACY(
+    SSM_REBORN_LEGACY("SSM REBORN (Legacy)",
             "us.smashreborn.com",
             "eu.smashreborn.com",
             "au.smashreborn.com",
@@ -31,9 +31,11 @@ public enum ServerType {
     // SSM_OS()
     ;
 
+    @Getter @NotNull private final String displayName;
     @Getter @NotNull private final List<String> domains;
 
-    ServerType(@NotNull final String... domains) {
+    ServerType(@NotNull final String displayName, @NotNull final String... domains) {
+        this.displayName = displayName;
         this.domains = Collections.unmodifiableList(Arrays.asList(domains));
     }
 

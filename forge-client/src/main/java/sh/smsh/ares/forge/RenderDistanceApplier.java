@@ -2,11 +2,15 @@ package sh.smsh.ares.forge;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.feature.impl.ExtendedRenderDistanceFeature;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RenderDistanceApplier {
@@ -17,6 +21,27 @@ public final class RenderDistanceApplier {
         if (!isEntityAllowedToBeRenderExtended(entity)) return;
 
         entity.renderDistanceWeight = ExtendedRenderDistanceFeature.getRenderDistanceWeight();
+    }
+
+    public static void refreshLoadedEntities() {
+        final Minecraft minecraft = Minecraft.getMinecraft();
+
+        if (minecraft.theWorld == null) {
+            return;
+        }
+
+        final List<Entity> loadedEntities = new ArrayList<>(minecraft.theWorld.loadedEntityList);
+        final boolean shouldApply = ExtendedRenderDistanceFeature.shouldApply();
+
+        for (final Entity entity : loadedEntities) {
+            if (!isEntityAllowedToBeRenderExtended(entity)) {
+                continue;
+            }
+
+            entity.renderDistanceWeight = shouldApply
+                    ? ExtendedRenderDistanceFeature.getRenderDistanceWeight()
+                    : 1.0d;     // default for minecraft clients
+        }
     }
 
     /*

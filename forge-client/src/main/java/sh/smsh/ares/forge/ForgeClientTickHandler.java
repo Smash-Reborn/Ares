@@ -4,6 +4,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.feature.FeatureManager;
+import sh.smsh.ares.forge.gui.AresGuiScheduler;
 
 public class ForgeClientTickHandler {
 
@@ -14,5 +15,6 @@ public class ForgeClientTickHandler {
         }
 
         FeatureManager.onClientTick();
+        AresGuiScheduler.openRequestedScreen();
     }
 }

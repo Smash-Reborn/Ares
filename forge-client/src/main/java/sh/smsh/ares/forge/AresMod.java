@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.AresConstants;
 import sh.smsh.ares.AresLog;
+import sh.smsh.ares.forge.command.AresConfigCommand;
 
 @Mod(
     modid = AresConstants.MOD_ID,
@@ -28,6 +29,7 @@ public class AresMod {
 
     @Mod.EventHandler
     public void init(@NotNull final FMLInitializationEvent event) {
+        net.minecraftforge.client.ClientCommandHandler.instance.registerCommand(new AresConfigCommand());
         AresLog.LOGGER.info(AresConstants.MOD_NAME + " loaded.");
     }
 }
