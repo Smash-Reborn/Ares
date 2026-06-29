@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.gate.ServerGate;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -16,6 +17,12 @@ public final class FeatureManager {
     private static boolean active = false;
 
     public static void register(@NotNull final AresFeature feature) {
+        for (final AresFeature registeredFeature : features) {
+            if (Objects.equals(registeredFeature.getId(), feature.getId())) {
+                return;
+            }
+        }
+
         features.add(feature);
 
         if (active && ServerGate.isAllowed()) {
@@ -39,6 +46,20 @@ public final class FeatureManager {
                 feature.onDisable();
             }
         }
+    }
+
+    public static boolean isActive(@NotNull final String featureId) {
+        if (!active) {
+            return false;
+        }
+
+        for (final AresFeature feature : features) {
+            if (Objects.equals(feature.getId(), featureId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void disableAll() {

@@ -6,26 +6,17 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import sh.smsh.ares.gate.ServerGate;
-import sh.smsh.ares.settings.ModSettings;
+import sh.smsh.ares.feature.impl.ExtendedRenderDistanceFeature;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RenderDistanceApplier {
 
     public static void apply(@NotNull final Entity entity) {
-        if (!ServerGate.isAllowed()) {
-            return;
-        }
+        if (!ExtendedRenderDistanceFeature.shouldApply()) return;
 
-        if (!ModSettings.isExtendedRenderDistanceEnabled()) {
-            return;
-        }
+        if (!isEntityAllowedToBeRenderExtended(entity)) return;
 
-        if (!isEntityAllowedToBeRenderExtended(entity)) {
-            return;
-        }
-
-        entity.renderDistanceWeight = ModSettings.getRenderDistanceWeight();
+        entity.renderDistanceWeight = ExtendedRenderDistanceFeature.getRenderDistanceWeight();
     }
 
     /*

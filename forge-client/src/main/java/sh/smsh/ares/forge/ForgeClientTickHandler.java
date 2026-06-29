@@ -12,6 +12,7 @@ public class ForgeClientTickHandler {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
+
         FeatureManager.onClientTick();
     }
 }

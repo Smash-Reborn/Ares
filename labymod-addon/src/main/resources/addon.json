@@ -2,9 +2,9 @@
   "uuid": "%uuid%",
   "name": "Ares",
   "mainClass": "sh.smsh.ares.labymod.AresLabyAddon",
-  "description": "Quality-of-life client addon for SSM Reborn mini-games. (v${version})",
-  "version": ${hotfix},
-  "author": "SSM Reborn",
+  "description": "Quality-of-life client mod for Super Smash Mobs (1.8) servers",
+  "version": "${version}",
+  "author": "Smash Reborn",
   "category": 5,
-  "icon": ""
+  "icon": "aresmod-icon.png"
 }

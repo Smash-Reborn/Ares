@@ -1,0 +1,24 @@
+package sh.smsh.ares.feature.impl;
+
+import org.jetbrains.annotations.NotNull;
+import sh.smsh.ares.feature.AresFeature;
+import sh.smsh.ares.feature.FeatureManager;
+import sh.smsh.ares.settings.ModSettings;
+
+public final class ExtendedRenderDistanceFeature implements AresFeature {
+
+    @NotNull public static final String ID = "AresMod:ExtendedRenderDistance";
+
+    @Override
+    @NotNull public String getId() {
+        return ID;
+    }
+
+    public static boolean shouldApply() {
+        return FeatureManager.isActive(ID) && ModSettings.isExtendedRenderDistanceEnabled();
+    }
+
+    public static float getRenderDistanceWeight() {
+        return ModSettings.getRenderDistanceWeight();
+    }
+}

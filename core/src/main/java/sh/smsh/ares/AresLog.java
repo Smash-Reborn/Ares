@@ -9,6 +9,5 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AresLog {
 
-    @NotNull
-    public static final Logger LOGGER = LogManager.getLogger(AresConstants.MOD_NAME);
+    @NotNull public static final Logger LOGGER = LogManager.getLogger(AresConstants.MOD_NAME);
 }

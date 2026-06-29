@@ -7,5 +7,5 @@
 - [ ] Improved F3+B (render bounding boxes) which shows the disguised entity AABB, the invisible original player and the invisible hittable squid
 - [ ] Restore disguised entity nametag above the mobs head (hide the artificial armor-stand one)
 
-- [ ] Proper MC-MOD description & sprite icon
+- [x] Proper MC-MOD description & sprite icon
 - [ ] Simple build scripts that will automatically compile all/various platform versions of the mod (automatically handle JDK and gradle version selection)

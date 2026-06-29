@@ -2,14 +2,14 @@
 {
   "modid": "${modid}",
   "name": "Ares",
-  "description": "Quality-of-life client mod for SSM Reborn mini-games.",
+  "description": "Quality-of-life client mod for Super Smash Mobs (1.8) servers",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/Smash-Reborn",
   "updateUrl": "",
-  "authorList": ["SSM Reborn"],
+  "authorList": ["Smash Reborn"],
   "credits": "",
-  "logoFile": "",
+  "logoFile": "aresmod-icon.png",
   "screenshots": [],
   "dependencies": []
 }

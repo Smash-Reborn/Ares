@@ -22,8 +22,7 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import sh.smsh.ares.gate.ServerGate;
-import sh.smsh.ares.settings.ModSettings;
+import sh.smsh.ares.feature.impl.ArrowBouncingDisableAnimationFeature;
 
 import java.util.List;
 
@@ -196,7 +195,7 @@ public abstract class MixinEntityArrow extends Entity {
                             this.setDead();
                         }
 
-                    } else if (!ServerGate.isAllowed() || !ModSettings.shouldDisableArrowBouncingAnimation()) {
+                    } else if (!ArrowBouncingDisableAnimationFeature.shouldDisableAnimation()) {
                         this.motionX *= (double)-0.1F;
                         this.motionY *= (double)-0.1F;
                         this.motionZ *= (double)-0.1F;
