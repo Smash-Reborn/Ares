@@ -9,6 +9,7 @@
 - [x] Config command and settings GUI that let's you configure the mods settings at runtime
 - [x] When displaying the tab-bar, render underneath a visual that tells you whether the mod is actively running on the server
 - [ ] Chat message which tells you whether the mod is actively enabled on the server (delayed so server JOIN messages are shown first)
+- [ ] Backport GLOWING render from modern versions (with full RGB color support) and allow players & their respective projectiles to be GLOWING during gameplay. (for teams mode, can make the GLOW match the team color so you can differentiate between teams)
 
 - [x] Proper MC-MOD description & sprite icon
 - [ ] Simple build scripts that will automatically compile all/various platform versions of the mod (automatically handle JDK and gradle version selection)
