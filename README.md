@@ -1,6 +1,10 @@
 # Ares
 
-### Clientside quality-of-life mod for **Minecraft 1.8.9**, built for Super Smash Mob gameplay servers (Mineplex, Smash Reborn, etc).<br><br>
+### Clientside quality-of-life mod for **Minecraft 1.8.9**, built for Super Smash Mob gameplay servers (Mineplex, Smash Reborn, etc).<br>
+![](https://img.shields.io/badge/environment-CLIENT-green) ![](https://img.shields.io/badge/client_version-1.8-green
+) ![](https://img.shields.io/badge/mod_loader-FORGE-orange
+)<br><br>
+
 
 > [!IMPORTANT]
 > Mod is actively being contributed to and updated. See RELEASES tab for version changes.
