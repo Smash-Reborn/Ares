@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.Score;
@@ -21,8 +22,8 @@ import sh.smsh.ares.disguise.DisguiseBinding;
 import sh.smsh.ares.disguise.DisguiseDetectionStrategy;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.disguise.DisguiseStrategies;
-import sh.smsh.ares.disguise.MineplexNametagFixRegistry;
-import sh.smsh.ares.disguise.SelfHotbarItem;
+import sh.smsh.ares.disguise.nametag.MineplexNametagFixRegistry;
+import sh.smsh.ares.disguise.self.SelfHotbarItem;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.util.TextFormattingUtil;
 
@@ -36,6 +37,7 @@ import java.util.Set;
 public final class DisguiseDetectionController {
 
     @NotNull private static Set<String> participatingPlayers = Collections.emptySet();
+    @Nullable private static String lastSelfHeadKey;
 
     public static void onClientTick() {
         refreshParticipatingPlayers();
@@ -62,24 +64,28 @@ public final class DisguiseDetectionController {
             return;
         }
 
-        final Entity entity = mc.theWorld.getEntityByID(entityId);
+        considerLivingEntity(mc.theWorld.getEntityByID(entityId), false);
+    }
 
+    private static void considerLivingEntity(@Nullable final Entity entity, final boolean skipIfPlayerAlreadyTracked) {
         if (!(entity instanceof EntityLivingBase)) {
             return;
         }
 
-        // armor stands are mineplex nametag scaffolding, never the disguise itself.
-        // invisible wolves are also nametag scaffolding on mineplex; visible wolves can be real
-        // kit disguises. HACKY: invisibility is used as a heuristic and may need improving later.
-        if (entity instanceof EntityArmorStand
+        // Players are never disguise mobs. The local player's entity id is reused for the
+        // self-inferred tab head; treating them as a nameless disguise would unregister it.
+        if (entity instanceof EntityPlayer
+                || entity instanceof EntityArmorStand
                 || (entity instanceof EntityWolf && entity.isInvisible())) {
             return;
         }
 
         final String customName = entity.getCustomNameTag();
+        final int entityId = entity.getEntityId();
 
         if (customName == null || customName.isEmpty()) {
-            if (DisguiseRegistry.isDisguiseEntity(entityId)) {
+            final DisguiseBinding existing = DisguiseRegistry.getByEntityId(entityId);
+            if (existing != null && !existing.isSelfInferred()) {
                 MineplexNametagFixController.onDisguiseUnregistered(entityId);
                 DisguiseRegistry.unregisterByEntityId(entityId);
             }
@@ -87,12 +93,23 @@ public final class DisguiseDetectionController {
             return;
         }
 
+        final DisguiseDetectionStrategy strategy = DisguiseStrategies.forCurrentServer();
+        if (strategy == null) {
+            return;
+        }
+
         final String matchedPlayer = strategy.matchPlayerFromCustomName(customName, participatingPlayers);
 
-        if (matchedPlayer != null) {
-            final String headKey = DisguiseHeadTypeResolver.resolveHeadKey(entity);
-            DisguiseRegistry.tryRegister(entityId, matchedPlayer, customName, headKey, false);
+        if (matchedPlayer == null) {
+            return;
         }
+
+        if (skipIfPlayerAlreadyTracked && DisguiseRegistry.getByPlayerName(matchedPlayer) != null) {
+            return;
+        }
+
+        final String headKey = DisguiseHeadTypeResolver.resolveHeadKey(entity);
+        DisguiseRegistry.tryRegister(entityId, matchedPlayer, customName, headKey, false);
     }
 
     public static void onEntitiesDestroyed(final int[] entityIds) {
@@ -106,6 +123,7 @@ public final class DisguiseDetectionController {
 
     public static void clear() {
         participatingPlayers = Collections.emptySet();
+        lastSelfHeadKey = null;
         MineplexNametagFixController.clear();
         DisguiseRegistry.clear();
     }
@@ -144,8 +162,40 @@ public final class DisguiseDetectionController {
                 collectTabNames(mc),
                 collectSidebarLines(mc.theWorld.getScoreboard()));
 
+        final boolean participatingChanged = !nextParticipating.equals(participatingPlayers);
         pruneLeftPlayers(nextParticipating);
         participatingPlayers = nextParticipating;
+
+        if (!participatingPlayers.isEmpty()
+                && (participatingChanged || hasUntrackedParticipatingPlayers())) {
+            rescanLoadedEntitiesForMissedDisguises();
+        }
+    }
+
+    /**
+     * Spawns during world transition can arrive before tab/scoreboard participation is known.
+     * Re-check loaded entities once names are available so those disguises are not missed.
+     */
+    private static void rescanLoadedEntitiesForMissedDisguises() {
+        final Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld == null) {
+            return;
+        }
+
+        for (final Entity entity : mc.theWorld.loadedEntityList) {
+            considerLivingEntity(entity, true);
+        }
+
+        MineplexNametagFixController.rescanLoadedEntities();
+    }
+
+    private static boolean hasUntrackedParticipatingPlayers() {
+        for (final String playerName : participatingPlayers) {
+            if (DisguiseRegistry.getByPlayerName(playerName) == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -170,13 +220,26 @@ public final class DisguiseDetectionController {
 
         final String selfName = self.getName();
         if (selfName == null || selfName.isEmpty() || !participatingPlayers.contains(selfName)) {
+            lastSelfHeadKey = null;
             clearSelfInferredBinding(selfName);
             return;
         }
 
-        final String headKey = strategy.resolveSelfHeadKey(collectHotbarItems(self));
+        String headKey = strategy.resolveSelfHeadKey(collectHotbarItems(self));
         if (headKey == null || headKey.isEmpty()) {
-            clearSelfInferredBinding(selfName);
+            headKey = lastSelfHeadKey;
+        }
+        if (headKey == null || headKey.isEmpty()) {
+            return;
+        }
+
+        lastSelfHeadKey = headKey;
+
+        final DisguiseBinding existing = DisguiseRegistry.getByPlayerName(selfName);
+        if (existing != null
+                && existing.isSelfInferred()
+                && existing.getEntityId() == self.getEntityId()
+                && headKey.equals(existing.getHeadKey())) {
             return;
         }
 

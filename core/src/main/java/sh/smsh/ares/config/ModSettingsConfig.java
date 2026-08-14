@@ -12,6 +12,8 @@ public class ModSettingsConfig {
     private boolean disableRandomEndermanTeleports = true;
     private boolean trackDisguises = true;
     private boolean useNativeNametag = true;
+    private boolean showHittableNametagBoundingBox = true;
+    private boolean showServersideBoundingBox = false;
 
     @Data
     @NoArgsConstructor

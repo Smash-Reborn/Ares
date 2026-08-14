@@ -1,4 +1,4 @@
-package sh.smsh.ares.disguise;
+package sh.smsh.ares.disguise.nametag;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package sh.smsh.ares.disguise;
+package sh.smsh.ares.disguise.self;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

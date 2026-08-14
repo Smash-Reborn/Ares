@@ -6,5 +6,7 @@
   "disableArrowBouncingAnimation": true,
   "disableRandomEndermanTeleports": true,
   "trackDisguises": true,
-  "useNativeNametag": true
+  "useNativeNametag": true,
+  "showHittableNametagBoundingBox": true,
+  "showServersideBoundingBox": false
 }

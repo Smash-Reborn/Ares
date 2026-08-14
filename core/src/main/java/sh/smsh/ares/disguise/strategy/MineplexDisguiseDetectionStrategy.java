@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.connection.ServerType;
 import sh.smsh.ares.disguise.DisguiseDetectionStrategy;
-import sh.smsh.ares.disguise.SelfHotbarItem;
-import sh.smsh.ares.disguise.SelfKitRule;
+import sh.smsh.ares.disguise.self.SelfHotbarItem;
+import sh.smsh.ares.disguise.self.SelfKitRule;
 import sh.smsh.ares.util.TextFormattingUtil;
 
 import java.util.Arrays;

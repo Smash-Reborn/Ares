@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.connection.ServerType;
 import sh.smsh.ares.disguise.DisguiseBinding;
 import sh.smsh.ares.disguise.DisguiseRegistry;
-import sh.smsh.ares.disguise.MineplexNametagFix;
-import sh.smsh.ares.disguise.MineplexNametagFixRegistry;
+import sh.smsh.ares.disguise.nametag.MineplexNametagFix;
+import sh.smsh.ares.disguise.nametag.MineplexNametagFixRegistry;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.gate.ServerGate;
 import sh.smsh.ares.settings.ModSettings;
@@ -53,6 +53,41 @@ public final class MineplexNametagFixController {
 
         syncNativeNametagSetting();
         enforceBlankArmorStandNames();
+    }
+
+    /**
+     * Catch-up after participating players become known. Spawn/attach packets may already have
+     * been applied, so rebuild wolf and armor-stand links from the current world state.
+     */
+    public static void rescanLoadedEntities() {
+        if (!isMineplexActive()) {
+            return;
+        }
+
+        final Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld == null) {
+            return;
+        }
+
+        for (final Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity instanceof EntityWolf && entity.isInvisible()) {
+                pendingInvisibleWolves.put(entity.getEntityId(), true);
+            } else if (entity instanceof EntityArmorStand) {
+                considerArmorStandCandidate(entity);
+            }
+        }
+
+        for (final Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity instanceof EntityWolf && entity.ridingEntity != null) {
+                onEntityAttach(entity.getEntityId(), entity.ridingEntity.getEntityId());
+            }
+        }
+
+        for (final Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity instanceof EntityArmorStand && entity.ridingEntity != null) {
+                onEntityAttach(entity.getEntityId(), entity.ridingEntity.getEntityId());
+            }
+        }
     }
 
     public static void onMobSpawn(final int entityId) {
@@ -224,6 +259,21 @@ public final class MineplexNametagFixController {
         } else {
             revertNativeNametag();
         }
+    }
+
+    public static int getTrackedWolfEntityIdForDisguise(final int disguiseEntityId) {
+        final MineplexNametagFix fix = MineplexNametagFixRegistry.getByDisguiseEntityId(disguiseEntityId);
+        if (fix != null) {
+            return fix.getWolfEntityId();
+        }
+
+        for (final Map.Entry<Integer, Integer> entry : wolfToDisguise.entrySet()) {
+            if (entry.getValue() == disguiseEntityId) {
+                return entry.getKey();
+            }
+        }
+
+        return -1;
     }
 
     public static boolean shouldForceRenderDisguiseName(@Nullable final Entity entity) {

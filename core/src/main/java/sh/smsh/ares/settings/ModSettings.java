@@ -89,6 +89,22 @@ public final class ModSettings {
         config.setUseNativeNametag(useNativeNametag);
     }
 
+    public static boolean shouldShowHittableNametagBoundingBox() {
+        return config.isShowHittableNametagBoundingBox();
+    }
+
+    public static void setShowHittableNametagBoundingBox(final boolean showHittableNametagBoundingBox) {
+        config.setShowHittableNametagBoundingBox(showHittableNametagBoundingBox);
+    }
+
+    public static boolean shouldShowServersideBoundingBox() {
+        return config.isShowServersideBoundingBox();
+    }
+
+    public static void setShowServersideBoundingBox(final boolean showServersideBoundingBox) {
+        config.setShowServersideBoundingBox(showServersideBoundingBox);
+    }
+
     public static boolean saveConfig() {
         if (loader == null) {
             return false;

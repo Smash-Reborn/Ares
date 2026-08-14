@@ -23,15 +23,17 @@ public class AresConfigScreen extends GuiScreen {
     private static final int BUTTON_ID_ENDERMAN_TELEPORTS = 4;
     private static final int BUTTON_ID_TRACK_DISGUISES = 5;
     private static final int BUTTON_ID_USE_NATIVE_NAMETAG = 6;
+    private static final int BUTTON_ID_HITTABLE_NAMETAG_BOX = 7;
+    private static final int BUTTON_ID_SERVERSIDE_BOUNDING_BOX = 8;
 
     private static final int CONTROL_WIDTH = 150;
     private static final int CONTROL_HEIGHT = 20;
-    private static final int CONTROL_SPACING = 33;
+    private static final int CONTROL_SPACING = 28;
     private static final int LABEL_WIDTH = 220;
-    private static final int CONTENT_Y_OFFSET = 40;
-    private static final int SETTINGS_PANEL_PADDING = 24;
+    private static final int CONTENT_Y_OFFSET = 8;
+    private static final int SETTINGS_PANEL_PADDING = 16;
     private static final int SETTINGS_PANEL_VISUAL_PADDING = 8;
-    private static final int SETTINGS_ROW_COUNT = 6;
+    private static final int SETTINGS_ROW_COUNT = 8;
     private static final int MIN_RENDER_DISTANCE_WEIGHT = 1;
     private static final int MAX_RENDER_DISTANCE_WEIGHT = 16;
     private static final int COLOR_LIGHT_GREY = 0xA0A0A0;
@@ -106,6 +108,24 @@ public class AresConfigScreen extends GuiScreen {
                 CONTROL_HEIGHT,
                 ModSettings.shouldUseNativeNametag()));
 
+        y += CONTROL_SPACING;
+        this.buttonList.add(new ToggleButton(
+                BUTTON_ID_HITTABLE_NAMETAG_BOX,
+                x,
+                y,
+                CONTROL_WIDTH,
+                CONTROL_HEIGHT,
+                ModSettings.shouldShowHittableNametagBoundingBox()));
+
+        y += CONTROL_SPACING;
+        this.buttonList.add(new ToggleButton(
+                BUTTON_ID_SERVERSIDE_BOUNDING_BOX,
+                x,
+                y,
+                CONTROL_WIDTH,
+                CONTROL_HEIGHT,
+                ModSettings.shouldShowServersideBoundingBox()));
+
         this.buttonList.add(new GuiButton(
                 BUTTON_ID_DONE,
                 this.width / 2 - 100,
@@ -142,6 +162,14 @@ public class AresConfigScreen extends GuiScreen {
                 ModSettings.setUseNativeNametag(!ModSettings.shouldUseNativeNametag());
                 ((ToggleButton)button).setStatusEnabled(ModSettings.shouldUseNativeNametag());
                 MineplexNametagFixController.onNativeNametagSettingChanged();
+                break;
+            case BUTTON_ID_HITTABLE_NAMETAG_BOX:
+                ModSettings.setShowHittableNametagBoundingBox(!ModSettings.shouldShowHittableNametagBoundingBox());
+                ((ToggleButton)button).setStatusEnabled(ModSettings.shouldShowHittableNametagBoundingBox());
+                break;
+            case BUTTON_ID_SERVERSIDE_BOUNDING_BOX:
+                ModSettings.setShowServersideBoundingBox(!ModSettings.shouldShowServersideBoundingBox());
+                ((ToggleButton)button).setStatusEnabled(ModSettings.shouldShowServersideBoundingBox());
                 break;
             case BUTTON_ID_DONE:
                 saveSettings();
@@ -220,11 +248,15 @@ public class AresConfigScreen extends GuiScreen {
         labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Disable Arrow Bouncing", panelLeft, labelY + 6, 0xFFFFFF);
         labelY += CONTROL_SPACING;
-        this.drawString(this.fontRendererObj, "Disable Random Enderman Teleports", panelLeft, labelY + 6, 0xFFFFFF);
+        this.drawString(this.fontRendererObj, "Disable Enderman Teleports", panelLeft, labelY + 6, 0xFFFFFF);
         labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Track Disguises", panelLeft, labelY + 6, 0xFFFFFF);
         labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Use Native Nametag", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Show Nametag BoundingBox", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Show Serverside BoundingBox", panelLeft, labelY + 6, 0xFFFFFF);
     }
 
     private void drawCenteredSplitString(

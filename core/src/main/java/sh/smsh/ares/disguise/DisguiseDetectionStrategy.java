@@ -3,6 +3,7 @@ package sh.smsh.ares.disguise;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.connection.ServerType;
+import sh.smsh.ares.disguise.self.SelfHotbarItem;
 
 import java.util.Collection;
 import java.util.List;

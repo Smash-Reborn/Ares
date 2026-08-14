@@ -1,9 +1,8 @@
-package sh.smsh.ares.disguise;
+package sh.smsh.ares.disguise.self;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Minecraft-free snapshot of one hotbar stack for self-disguise kit detection.

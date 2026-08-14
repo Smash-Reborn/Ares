@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sh.smsh.ares.disguise.nametag.MineplexNametagFixRegistry;
 
 import java.util.Collection;
 import java.util.Collections;
