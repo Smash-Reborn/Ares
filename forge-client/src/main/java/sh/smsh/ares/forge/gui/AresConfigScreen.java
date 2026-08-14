@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.connection.ServerType;
 import sh.smsh.ares.forge.RenderDistanceApplier;
+import sh.smsh.ares.forge.disguise.MineplexNametagFixController;
 import sh.smsh.ares.gate.ServerGate;
 import sh.smsh.ares.settings.ModSettings;
 
@@ -19,15 +20,17 @@ public class AresConfigScreen extends GuiScreen {
     private static final int BUTTON_ID_RENDER_DISTANCE_WEIGHT = 2;
     private static final int BUTTON_ID_ARROW_BOUNCING = 3;
     private static final int BUTTON_ID_ENDERMAN_TELEPORTS = 4;
+    private static final int BUTTON_ID_TRACK_DISGUISES = 5;
+    private static final int BUTTON_ID_USE_NATIVE_NAMETAG = 6;
 
     private static final int CONTROL_WIDTH = 150;
     private static final int CONTROL_HEIGHT = 20;
     private static final int CONTROL_SPACING = 33;
     private static final int LABEL_WIDTH = 220;
-    private static final int CONTENT_Y_OFFSET = 50;
+    private static final int CONTENT_Y_OFFSET = 40;
     private static final int SETTINGS_PANEL_PADDING = 24;
     private static final int SETTINGS_PANEL_VISUAL_PADDING = 8;
-    private static final int SETTINGS_ROW_COUNT = 4;
+    private static final int SETTINGS_ROW_COUNT = 6;
     private static final int MIN_RENDER_DISTANCE_WEIGHT = 1;
     private static final int MAX_RENDER_DISTANCE_WEIGHT = 16;
     private static final int COLOR_LIGHT_GREY = 0xA0A0A0;
@@ -84,6 +87,24 @@ public class AresConfigScreen extends GuiScreen {
                 CONTROL_HEIGHT,
                 ModSettings.shouldDisableRandomEndermanTeleports()));
 
+        y += CONTROL_SPACING;
+        this.buttonList.add(new ToggleButton(
+                BUTTON_ID_TRACK_DISGUISES,
+                x,
+                y,
+                CONTROL_WIDTH,
+                CONTROL_HEIGHT,
+                ModSettings.shouldTrackDisguises()));
+
+        y += CONTROL_SPACING;
+        this.buttonList.add(new ToggleButton(
+                BUTTON_ID_USE_NATIVE_NAMETAG,
+                x,
+                y,
+                CONTROL_WIDTH,
+                CONTROL_HEIGHT,
+                ModSettings.shouldUseNativeNametag()));
+
         this.buttonList.add(new GuiButton(
                 BUTTON_ID_DONE,
                 this.width / 2 - 100,
@@ -108,6 +129,15 @@ public class AresConfigScreen extends GuiScreen {
             case BUTTON_ID_ENDERMAN_TELEPORTS:
                 ModSettings.setDisableRandomEndermanTeleports(!ModSettings.shouldDisableRandomEndermanTeleports());
                 ((ToggleButton)button).setStatusEnabled(ModSettings.shouldDisableRandomEndermanTeleports());
+                break;
+            case BUTTON_ID_TRACK_DISGUISES:
+                ModSettings.setTrackDisguises(!ModSettings.shouldTrackDisguises());
+                ((ToggleButton)button).setStatusEnabled(ModSettings.shouldTrackDisguises());
+                break;
+            case BUTTON_ID_USE_NATIVE_NAMETAG:
+                ModSettings.setUseNativeNametag(!ModSettings.shouldUseNativeNametag());
+                ((ToggleButton)button).setStatusEnabled(ModSettings.shouldUseNativeNametag());
+                MineplexNametagFixController.onNativeNametagSettingChanged();
                 break;
             case BUTTON_ID_DONE:
                 saveSettings();
@@ -187,6 +217,10 @@ public class AresConfigScreen extends GuiScreen {
         this.drawString(this.fontRendererObj, "Disable Arrow Bouncing", panelLeft, labelY + 6, 0xFFFFFF);
         labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Disable Random Enderman Teleports", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Track Disguises", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Use Native Nametag", panelLeft, labelY + 6, 0xFFFFFF);
     }
 
     private void drawCenteredSplitString(

@@ -4,5 +4,7 @@
     "renderDistanceWeight": 12.0
   },
   "disableArrowBouncingAnimation": true,
-  "disableRandomEndermanTeleports": true
+  "disableRandomEndermanTeleports": true,
+  "trackDisguises": true,
+  "useNativeNametag": true
 }

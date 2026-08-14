@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.AresBootstrap;
 import sh.smsh.ares.AresConstants;
 import sh.smsh.ares.feature.impl.ArrowBouncingDisableAnimationFeature;
+import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.feature.impl.RandomEndermanTeleportsDisableFeature;
 import sh.smsh.ares.feature.impl.ExtendedRenderDistanceFeature;
 import sh.smsh.ares.feature.FeatureManager;
@@ -23,6 +24,7 @@ public final class ForgeFeatureBootstrap {
         FeatureManager.register(new ArrowBouncingDisableAnimationFeature());
         FeatureManager.register(new RandomEndermanTeleportsDisableFeature());
         FeatureManager.register(new ExtendedRenderDistanceFeature());
+        FeatureManager.register(new DisguiseDetectionFeature());
     }
 
     public static void reloadWhitelist() {

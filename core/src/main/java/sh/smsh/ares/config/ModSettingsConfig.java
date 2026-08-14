@@ -10,6 +10,8 @@ public class ModSettingsConfig {
     private ExtendedRenderDistanceSettings extendedRenderDistance = new ExtendedRenderDistanceSettings();
     private boolean disableArrowBouncingAnimation = true;
     private boolean disableRandomEndermanTeleports = true;
+    private boolean trackDisguises = true;
+    private boolean useNativeNametag = true;
 
     @Data
     @NoArgsConstructor

@@ -68,6 +68,22 @@ public final class ModSettings {
         config.setDisableRandomEndermanTeleports(disableRandomEndermanTeleports);
     }
 
+    public static boolean shouldTrackDisguises() {
+        return config.isTrackDisguises();
+    }
+
+    public static void setTrackDisguises(final boolean trackDisguises) {
+        config.setTrackDisguises(trackDisguises);
+    }
+
+    public static boolean shouldUseNativeNametag() {
+        return config.isUseNativeNametag();
+    }
+
+    public static void setUseNativeNametag(final boolean useNativeNametag) {
+        config.setUseNativeNametag(useNativeNametag);
+    }
+
     public static boolean saveConfig() {
         if (loader == null) {
             return false;

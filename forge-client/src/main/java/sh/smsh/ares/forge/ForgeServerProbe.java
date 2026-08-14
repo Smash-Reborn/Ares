@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.connection.ServerConnectionHandler;
+import sh.smsh.ares.forge.disguise.DisguiseDetectionController;
 
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class ForgeServerProbe {
@@ -25,6 +26,7 @@ public class ForgeServerProbe {
 
     @SubscribeEvent
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        DisguiseDetectionController.clear();
         ServerConnectionHandler.onDisconnected();
         lastObservedAddress = null;
     }
@@ -35,6 +37,8 @@ public class ForgeServerProbe {
             return;
         }
 
+        DisguiseDetectionController.clear();
+
         final String address = resolveServerAddress();
         if (address != null && address.equals(lastObservedAddress)) {
             return;
@@ -42,6 +46,15 @@ public class ForgeServerProbe {
 
         ServerConnectionHandler.onServerAddressChanged(address);
         lastObservedAddress = address;
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (!event.world.isRemote) {
+            return;
+        }
+
+        DisguiseDetectionController.clear();
     }
 
     @ApiStatus.Internal
