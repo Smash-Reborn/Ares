@@ -15,18 +15,14 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
+import sh.smsh.ares.forge.gui.TabListDisguiseRenderer;
 import sh.smsh.ares.gate.ServerGate;
 
 import java.util.List;
 
 @Mixin(GuiPlayerTabOverlay.class)
 public abstract class MixinGuiPlayerTabOverlay extends Gui {
-
-    /*
-     * todo:
-     *  mixin the entire tab-bar because later on we will have to
-     *  use this class to impl the disguise mob-heads rendering next to player heads
-     */
 
     @Unique private static final String ARES_ENABLED_ICON = "\u2714";
     @Unique private static final String ARES_DISABLED_ICON = "\u2716";
@@ -45,13 +41,38 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
     @Shadow private IChatComponent header;
     @Shadow private IChatComponent footer;
 
-    @Inject(method = "renderPlayerlist", at = @At("RETURN"))
-    private void ares$drawGateStatus(
+    @Inject(method = "renderPlayerlist", at = @At("HEAD"), cancellable = true)
+    private void ares$renderWithDisguiseHeads(
             final int width,
             final Scoreboard scoreboardIn,
             final ScoreObjective scoreObjectiveIn,
             final CallbackInfo ci) {
+        // Only replace the tab list when disguise tracking is enabled; otherwise leave vanilla alone.
+        if (!DisguiseDetectionFeature.shouldApply()) {
+            return;
+        }
 
+        ci.cancel();
+        TabListDisguiseRenderer.render(
+                (GuiPlayerTabOverlay) (Object) this,
+                field_175252_a,
+                width,
+                scoreboardIn,
+                scoreObjectiveIn);
+        ares$drawGateStatus(width);
+    }
+
+    @Inject(method = "renderPlayerlist", at = @At("RETURN"))
+    private void ares$drawGateStatusVanilla(
+            final int width,
+            final Scoreboard scoreboardIn,
+            final ScoreObjective scoreObjectiveIn,
+            final CallbackInfo ci) {
+        ares$drawGateStatus(width);
+    }
+
+    @Unique
+    private void ares$drawGateStatus(final int width) {
         final int y = ares$getTabListBottom(width) + ARES_STATUS_VERTICAL_PADDING;
         final boolean isAllowed = ServerGate.isAllowed();
         final String icon = isAllowed ? ARES_ENABLED_ICON : ARES_DISABLED_ICON;
@@ -71,8 +92,8 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
 
     @Unique
     private int ares$getTabListBottom(final int width) {
-
-        final List<NetworkPlayerInfo> players = field_175252_a.sortedCopy(this.mc.thePlayer.sendQueue.getPlayerInfoMap());
+        final List<NetworkPlayerInfo> players =
+                field_175252_a.sortedCopy(this.mc.thePlayer.sendQueue.getPlayerInfoMap());
         final int playerCount = Math.min(players.size(), 80);
         int rows = playerCount;
         int columns;
@@ -82,7 +103,6 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
         }
 
         int top = 10;
-
         if (this.header != null) {
             top += this.mc.fontRendererObj.listFormattedStringToWidth(
                     this.header.getFormattedText(),

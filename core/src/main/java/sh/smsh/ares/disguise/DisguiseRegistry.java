@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisguiseRegistry {
 
+    public static final String UNKNOWN_HEAD_KEY = "unknown";
+
     @NotNull private static final Map<Integer, DisguiseBinding> byEntityId = new ConcurrentHashMap<>();
     @NotNull private static final Map<String, DisguiseBinding> byPlayerName = new ConcurrentHashMap<>();
 
@@ -25,20 +27,28 @@ public final class DisguiseRegistry {
     public static boolean tryRegister(
             final int entityId,
             @NotNull final String playerName,
-            @Nullable final String rawCustomName) {
-
+            @Nullable final String rawCustomName,
+            @NotNull final String headKey,
+            final boolean selfInferred) {
         final DisguiseBinding existingByName = byPlayerName.get(playerName);
-
         if (existingByName != null && existingByName.getEntityId() != entityId) {
             return false;
         }
 
-        register(entityId, playerName, rawCustomName);
+        register(entityId, playerName, rawCustomName, headKey, selfInferred);
         return true;
     }
 
-    public static void register(final int entityId, @NotNull final String playerName, @Nullable final String rawCustomName) {
-        final DisguiseBinding binding = new DisguiseBinding(entityId, playerName, rawCustomName);
+    public static void register(
+            final int entityId,
+            @NotNull final String playerName,
+            @Nullable final String rawCustomName,
+            @NotNull final String headKey,
+            final boolean selfInferred) {
+
+        final String resolvedHeadKey = headKey.isEmpty() ? UNKNOWN_HEAD_KEY : headKey;
+        final DisguiseBinding binding =
+                new DisguiseBinding(entityId, playerName, rawCustomName, resolvedHeadKey, selfInferred);
 
         final DisguiseBinding previousByName = byPlayerName.put(playerName, binding);
 
@@ -57,7 +67,6 @@ public final class DisguiseRegistry {
 
     public static void unregisterByEntityId(final int entityId) {
         final DisguiseBinding removed = byEntityId.remove(entityId);
-
         if (removed != null) {
             byPlayerName.remove(removed.getPlayerName(), removed);
             MineplexNametagFixRegistry.remove(entityId);
@@ -66,7 +75,6 @@ public final class DisguiseRegistry {
 
     public static void unregisterByPlayer(@NotNull final String playerName) {
         final DisguiseBinding removed = byPlayerName.remove(playerName);
-
         if (removed != null) {
             byEntityId.remove(removed.getEntityId(), removed);
             MineplexNametagFixRegistry.removeByPlayer(playerName);

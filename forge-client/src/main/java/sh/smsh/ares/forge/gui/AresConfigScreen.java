@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.connection.ServerType;
 import sh.smsh.ares.forge.RenderDistanceApplier;
+import sh.smsh.ares.forge.disguise.DisguiseDetectionController;
 import sh.smsh.ares.forge.disguise.MineplexNametagFixController;
 import sh.smsh.ares.gate.ServerGate;
 import sh.smsh.ares.settings.ModSettings;
@@ -133,6 +134,9 @@ public class AresConfigScreen extends GuiScreen {
             case BUTTON_ID_TRACK_DISGUISES:
                 ModSettings.setTrackDisguises(!ModSettings.shouldTrackDisguises());
                 ((ToggleButton)button).setStatusEnabled(ModSettings.shouldTrackDisguises());
+                if (!ModSettings.shouldTrackDisguises()) {
+                    DisguiseDetectionController.clear();
+                }
                 break;
             case BUTTON_ID_USE_NATIVE_NAMETAG:
                 ModSettings.setUseNativeNametag(!ModSettings.shouldUseNativeNametag());

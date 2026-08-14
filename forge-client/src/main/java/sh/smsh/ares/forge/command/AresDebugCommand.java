@@ -76,7 +76,8 @@ public class AresDebugCommand extends CommandBase {
                     + EnumChatFormatting.AQUA + binding.getPlayerName()
                     + EnumChatFormatting.GRAY + " -> "
                     + EnumChatFormatting.WHITE + entityType
-                    + EnumChatFormatting.DARK_GRAY + " (id " + binding.getEntityId() + ")");
+                    + EnumChatFormatting.DARK_GRAY + " / head=" + binding.getHeadKey()
+                    + " (id " + binding.getEntityId() + ")");
         }
     }
 

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.AresLog;
 import sh.smsh.ares.config.ModSettingsConfig;
 import sh.smsh.ares.config.ModSettingsLoader;
+import sh.smsh.ares.disguise.DisguiseRegistry;
 
 import java.nio.file.Path;
 
@@ -73,7 +74,11 @@ public final class ModSettings {
     }
 
     public static void setTrackDisguises(final boolean trackDisguises) {
+        final boolean wasTracking = config.isTrackDisguises();
         config.setTrackDisguises(trackDisguises);
+        if (wasTracking && !trackDisguises) {
+            DisguiseRegistry.clear();
+        }
     }
 
     public static boolean shouldUseNativeNametag() {

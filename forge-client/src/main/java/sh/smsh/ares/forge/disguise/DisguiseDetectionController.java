@@ -3,11 +3,14 @@ package sh.smsh.ares.forge.disguise;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
@@ -19,7 +22,9 @@ import sh.smsh.ares.disguise.DisguiseDetectionStrategy;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.disguise.DisguiseStrategies;
 import sh.smsh.ares.disguise.MineplexNametagFixRegistry;
+import sh.smsh.ares.disguise.SelfHotbarItem;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
+import sh.smsh.ares.util.TextFormattingUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,6 +39,7 @@ public final class DisguiseDetectionController {
 
     public static void onClientTick() {
         refreshParticipatingPlayers();
+        refreshSelfDisguise();
         MineplexNametagFixController.onClientTick();
     }
 
@@ -43,6 +49,7 @@ public final class DisguiseDetectionController {
         }
 
         final DisguiseDetectionStrategy strategy = DisguiseStrategies.forCurrentServer();
+
         if (strategy == null) {
             return;
         }
@@ -50,11 +57,13 @@ public final class DisguiseDetectionController {
         refreshParticipatingPlayers();
 
         final Minecraft mc = Minecraft.getMinecraft();
+
         if (mc.theWorld == null) {
             return;
         }
 
         final Entity entity = mc.theWorld.getEntityByID(entityId);
+
         if (!(entity instanceof EntityLivingBase)) {
             return;
         }
@@ -74,13 +83,15 @@ public final class DisguiseDetectionController {
                 MineplexNametagFixController.onDisguiseUnregistered(entityId);
                 DisguiseRegistry.unregisterByEntityId(entityId);
             }
+
             return;
         }
 
         final String matchedPlayer = strategy.matchPlayerFromCustomName(customName, participatingPlayers);
 
         if (matchedPlayer != null) {
-            DisguiseRegistry.tryRegister(entityId, matchedPlayer, customName);
+            final String headKey = DisguiseHeadTypeResolver.resolveHeadKey(entity);
+            DisguiseRegistry.tryRegister(entityId, matchedPlayer, customName, headKey, false);
         }
     }
 
@@ -137,6 +148,71 @@ public final class DisguiseDetectionController {
         participatingPlayers = nextParticipating;
     }
 
+    /**
+     * Local player never receives their own disguise mob spawn. Infer kit from hotbar when they
+     * are a participating player (tab ∩ sidebar). Does not require nametag-fix wolf/armor-stand.
+     */
+    private static void refreshSelfDisguise() {
+        if (!DisguiseDetectionFeature.shouldApply()) {
+            return;
+        }
+
+        final DisguiseDetectionStrategy strategy = DisguiseStrategies.forCurrentServer();
+        if (strategy == null) {
+            return;
+        }
+
+        final Minecraft mc = Minecraft.getMinecraft();
+        final EntityPlayerSP self = mc.thePlayer;
+        if (self == null) {
+            return;
+        }
+
+        final String selfName = self.getName();
+        if (selfName == null || selfName.isEmpty() || !participatingPlayers.contains(selfName)) {
+            clearSelfInferredBinding(selfName);
+            return;
+        }
+
+        final String headKey = strategy.resolveSelfHeadKey(collectHotbarItems(self));
+        if (headKey == null || headKey.isEmpty()) {
+            clearSelfInferredBinding(selfName);
+            return;
+        }
+
+        DisguiseRegistry.tryRegister(self.getEntityId(), selfName, null, headKey, true);
+    }
+
+    private static void clearSelfInferredBinding(@Nullable final String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return;
+        }
+
+        final DisguiseBinding existing = DisguiseRegistry.getByPlayerName(playerName);
+        if (existing != null && existing.isSelfInferred()) {
+            DisguiseRegistry.unregisterByPlayer(playerName);
+        }
+    }
+
+    @NotNull
+    private static List<SelfHotbarItem> collectHotbarItems(@NotNull final EntityPlayerSP self) {
+        final List<SelfHotbarItem> items = new ArrayList<SelfHotbarItem>(9);
+        for (int slot = 0; slot < 9; slot++) {
+            final ItemStack stack = self.inventory.mainInventory[slot];
+            if (stack == null || stack.getItem() == null) {
+                items.add(new SelfHotbarItem(-1, 0, ""));
+                continue;
+            }
+
+            final int itemId = Item.getIdFromItem(stack.getItem());
+            final int metadata = stack.getMetadata();
+            final String rawName = stack.hasDisplayName() ? stack.getDisplayName() : "";
+            final String displayName = TextFormattingUtil.stripFormatting(rawName);
+            items.add(new SelfHotbarItem(itemId, metadata, displayName));
+        }
+        return items;
+    }
+
     private static void pruneLeftPlayers(@NotNull final Set<String> nextParticipating) {
         final List<String> toRemove = new ArrayList<>();
 
@@ -152,8 +228,7 @@ public final class DisguiseDetectionController {
         }
     }
 
-    @NotNull
-    private static Collection<String> collectTabNames(@NotNull final Minecraft mc) {
+    @NotNull private static Collection<String> collectTabNames(@NotNull final Minecraft mc) {
         final Collection<NetworkPlayerInfo> infos = mc.thePlayer.sendQueue.getPlayerInfoMap();
 
         if (infos == null || infos.isEmpty()) {
@@ -177,8 +252,7 @@ public final class DisguiseDetectionController {
         return names;
     }
 
-    @NotNull
-    private static Collection<String> collectSidebarLines(@Nullable final Scoreboard scoreboard) {
+    @NotNull private static Collection<String> collectSidebarLines(@Nullable final Scoreboard scoreboard) {
         if (scoreboard == null) {
             return Collections.emptyList();
         }
