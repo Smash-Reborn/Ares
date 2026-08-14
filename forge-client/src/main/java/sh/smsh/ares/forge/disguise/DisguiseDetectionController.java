@@ -43,6 +43,7 @@ public final class DisguiseDetectionController {
         refreshParticipatingPlayers();
         refreshSelfDisguise();
         MineplexNametagFixController.onClientTick();
+        WitherImageNametagController.onClientTick();
     }
 
     public static void onLivingEntitySpawnOrMetadata(final int entityId) {
@@ -64,7 +65,9 @@ public final class DisguiseDetectionController {
             return;
         }
 
-        considerLivingEntity(mc.theWorld.getEntityByID(entityId), false);
+        final Entity entity = mc.theWorld.getEntityByID(entityId);
+        considerLivingEntity(entity, false);
+        WitherImageNametagController.consider(entity);
     }
 
     private static void considerLivingEntity(@Nullable final Entity entity, final boolean skipIfPlayerAlreadyTracked) {
@@ -113,17 +116,14 @@ public final class DisguiseDetectionController {
     }
 
     public static void onEntitiesDestroyed(final int[] entityIds) {
-        if (!DisguiseDetectionFeature.shouldApply()) {
-            MineplexNametagFixController.onEntitiesDestroyed(entityIds);
-            return;
-        }
-
+        WitherImageNametagController.onEntitiesDestroyed(entityIds);
         MineplexNametagFixController.onEntitiesDestroyed(entityIds);
     }
 
     public static void clear() {
         participatingPlayers = Collections.emptySet();
         lastSelfHeadKey = null;
+        WitherImageNametagController.clear();
         MineplexNametagFixController.clear();
         DisguiseRegistry.clear();
     }
@@ -184,6 +184,7 @@ public final class DisguiseDetectionController {
 
         for (final Entity entity : mc.theWorld.loadedEntityList) {
             considerLivingEntity(entity, true);
+            WitherImageNametagController.consider(entity);
         }
 
         MineplexNametagFixController.rescanLoadedEntities();

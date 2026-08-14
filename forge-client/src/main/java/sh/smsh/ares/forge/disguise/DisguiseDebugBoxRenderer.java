@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sh.smsh.ares.config.AresColor;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.settings.ModSettings;
 
@@ -20,12 +21,6 @@ public final class DisguiseDebugBoxRenderer {
     private static final double PLAYER_HALF_WIDTH = PLAYER_WIDTH / 2.0D;
     private static final float DEFAULT_WOLF_WIDTH = 0.6F;
     private static final float DEFAULT_WOLF_HEIGHT = 0.8F;
-    private static final int COLOR_BLUE_R = 0;
-    private static final int COLOR_BLUE_G = 0;
-    private static final int COLOR_BLUE_B = 255;
-    private static final int COLOR_GREEN_R = 0;
-    private static final int COLOR_GREEN_G = 255;
-    private static final int COLOR_GREEN_B = 0;
     private static final int COLOR_ALPHA = 255;
 
     public static void onEntityRendered(
@@ -62,20 +57,22 @@ public final class DisguiseDebugBoxRenderer {
 
         try {
             if (drawWolfBox) {
+                final AresColor hittableColor = ModSettings.getHittableNametagBoundingBoxColor();
                 RenderGlobal.drawOutlinedBoundingBox(
                         toWolfBoxOnTopOfDisguise(entity, x, y, z, wolfEntityId),
-                        COLOR_BLUE_R,
-                        COLOR_BLUE_G,
-                        COLOR_BLUE_B,
+                        hittableColor.getRed(),
+                        hittableColor.getGreen(),
+                        hittableColor.getBlue(),
                         COLOR_ALPHA);
             }
 
             if (showServersideBox) {
+                final AresColor serversideColor = ModSettings.getServersideBoundingBoxColor();
                 RenderGlobal.drawOutlinedBoundingBox(
                         toPlayerSizedBox(x, y, z),
-                        COLOR_GREEN_R,
-                        COLOR_GREEN_G,
-                        COLOR_GREEN_B,
+                        serversideColor.getRed(),
+                        serversideColor.getGreen(),
+                        serversideColor.getBlue(),
                         COLOR_ALPHA);
             }
         } finally {

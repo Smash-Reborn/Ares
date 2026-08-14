@@ -7,6 +7,9 @@
   "disableRandomEndermanTeleports": true,
   "trackDisguises": true,
   "useNativeNametag": true,
+  "disguiseNametagColor": "YELLOW",
   "showHittableNametagBoundingBox": true,
-  "showServersideBoundingBox": false
+  "hittableNametagBoundingBoxColor": "BLUE",
+  "showServersideBoundingBox": false,
+  "serversideBoundingBoxColor": "GREEN"
 }

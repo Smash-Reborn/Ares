@@ -12,8 +12,11 @@ public class ModSettingsConfig {
     private boolean disableRandomEndermanTeleports = true;
     private boolean trackDisguises = true;
     private boolean useNativeNametag = true;
+    private AresColor disguiseNametagColor = AresColor.YELLOW;
     private boolean showHittableNametagBoundingBox = true;
+    private AresColor hittableNametagBoundingBoxColor = AresColor.BLUE;
     private boolean showServersideBoundingBox = false;
+    private AresColor serversideBoundingBoxColor = AresColor.GREEN;
 
     @Data
     @NoArgsConstructor

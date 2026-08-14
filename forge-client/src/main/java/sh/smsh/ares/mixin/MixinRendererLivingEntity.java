@@ -2,11 +2,14 @@ package sh.smsh.ares.mixin;
 
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.IChatComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import sh.smsh.ares.forge.disguise.MineplexNametagFixController;
+import sh.smsh.ares.settings.ModSettings;
 
 @Mixin(RendererLivingEntity.class)
 public abstract class MixinRendererLivingEntity {
@@ -18,5 +21,24 @@ public abstract class MixinRendererLivingEntity {
         if (MineplexNametagFixController.shouldForceRenderDisguiseName(entity)) {
             cir.setReturnValue(true);
         }
+    }
+
+    @Redirect(
+            method = "renderName(Lnet/minecraft/entity/EntityLivingBase;DDD)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/IChatComponent;getFormattedText()Ljava/lang/String;"))
+    private String ares$colorDisguiseNametag(
+            final IChatComponent displayName,
+            final EntityLivingBase entity,
+            final double x,
+            final double y,
+            final double z) {
+        final String formattedText = displayName.getFormattedText();
+        if (!MineplexNametagFixController.shouldForceRenderDisguiseName(entity)) {
+            return formattedText;
+        }
+
+        return ModSettings.getDisguiseNametagColor().applyTo(formattedText);
     }
 }

@@ -6,12 +6,16 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sh.smsh.ares.config.AresColor;
 import sh.smsh.ares.connection.ServerType;
 import sh.smsh.ares.forge.RenderDistanceApplier;
 import sh.smsh.ares.forge.disguise.DisguiseDetectionController;
 import sh.smsh.ares.forge.disguise.MineplexNametagFixController;
 import sh.smsh.ares.gate.ServerGate;
 import sh.smsh.ares.settings.ModSettings;
+
+import java.io.IOException;
+import java.util.function.Consumer;
 
 public class AresConfigScreen extends GuiScreen {
 
@@ -23,17 +27,21 @@ public class AresConfigScreen extends GuiScreen {
     private static final int BUTTON_ID_ENDERMAN_TELEPORTS = 4;
     private static final int BUTTON_ID_TRACK_DISGUISES = 5;
     private static final int BUTTON_ID_USE_NATIVE_NAMETAG = 6;
-    private static final int BUTTON_ID_HITTABLE_NAMETAG_BOX = 7;
-    private static final int BUTTON_ID_SERVERSIDE_BOUNDING_BOX = 8;
+    private static final int BUTTON_ID_DISGUISE_NAMETAG_COLOR = 7;
+    private static final int BUTTON_ID_HITTABLE_NAMETAG_BOX = 8;
+    private static final int BUTTON_ID_HITTABLE_NAMETAG_BOX_COLOR = 9;
+    private static final int BUTTON_ID_SERVERSIDE_BOUNDING_BOX = 10;
+    private static final int BUTTON_ID_SERVERSIDE_BOUNDING_BOX_COLOR = 11;
 
     private static final int CONTROL_WIDTH = 150;
     private static final int CONTROL_HEIGHT = 20;
     private static final int CONTROL_SPACING = 28;
+    private static final int SWATCH_SIZE = 20;
     private static final int LABEL_WIDTH = 220;
     private static final int CONTENT_Y_OFFSET = 8;
     private static final int SETTINGS_PANEL_PADDING = 16;
     private static final int SETTINGS_PANEL_VISUAL_PADDING = 8;
-    private static final int SETTINGS_ROW_COUNT = 8;
+    private static final int SETTINGS_ROW_COUNT = 11;
     private static final int MIN_RENDER_DISTANCE_WEIGHT = 1;
     private static final int MAX_RENDER_DISTANCE_WEIGHT = 16;
     private static final int COLOR_LIGHT_GREY = 0xA0A0A0;
@@ -42,6 +50,7 @@ public class AresConfigScreen extends GuiScreen {
     private static final int COLOR_RED = 0xFF5555;
 
     @Nullable private final GuiScreen parentScreen;
+    @NotNull private final ColorPickerOverlay colorPicker = new ColorPickerOverlay();
     @Nullable private String statusMessage;
 
     public AresConfigScreen(@Nullable final GuiScreen parentScreen) {
@@ -51,8 +60,10 @@ public class AresConfigScreen extends GuiScreen {
     @Override
     public void initGui() {
         this.buttonList.clear();
+        colorPicker.close();
 
         final int x = this.width / 2 + 35;
+        final int swatchX = x + CONTROL_WIDTH - SWATCH_SIZE;
         int y = getFirstSettingY();
 
         this.buttonList.add(new ToggleButton(
@@ -109,6 +120,15 @@ public class AresConfigScreen extends GuiScreen {
                 ModSettings.shouldUseNativeNametag()));
 
         y += CONTROL_SPACING;
+        this.buttonList.add(new ColorSwatchButton(
+                BUTTON_ID_DISGUISE_NAMETAG_COLOR,
+                swatchX,
+                y,
+                SWATCH_SIZE,
+                SWATCH_SIZE,
+                ModSettings.getDisguiseNametagColor()));
+
+        y += CONTROL_SPACING;
         this.buttonList.add(new ToggleButton(
                 BUTTON_ID_HITTABLE_NAMETAG_BOX,
                 x,
@@ -118,6 +138,15 @@ public class AresConfigScreen extends GuiScreen {
                 ModSettings.shouldShowHittableNametagBoundingBox()));
 
         y += CONTROL_SPACING;
+        this.buttonList.add(new ColorSwatchButton(
+                BUTTON_ID_HITTABLE_NAMETAG_BOX_COLOR,
+                swatchX,
+                y,
+                SWATCH_SIZE,
+                SWATCH_SIZE,
+                ModSettings.getHittableNametagBoundingBoxColor()));
+
+        y += CONTROL_SPACING;
         this.buttonList.add(new ToggleButton(
                 BUTTON_ID_SERVERSIDE_BOUNDING_BOX,
                 x,
@@ -125,6 +154,15 @@ public class AresConfigScreen extends GuiScreen {
                 CONTROL_WIDTH,
                 CONTROL_HEIGHT,
                 ModSettings.shouldShowServersideBoundingBox()));
+
+        y += CONTROL_SPACING;
+        this.buttonList.add(new ColorSwatchButton(
+                BUTTON_ID_SERVERSIDE_BOUNDING_BOX_COLOR,
+                swatchX,
+                y,
+                SWATCH_SIZE,
+                SWATCH_SIZE,
+                ModSettings.getServersideBoundingBoxColor()));
 
         this.buttonList.add(new GuiButton(
                 BUTTON_ID_DONE,
@@ -163,13 +201,22 @@ public class AresConfigScreen extends GuiScreen {
                 ((ToggleButton)button).setStatusEnabled(ModSettings.shouldUseNativeNametag());
                 MineplexNametagFixController.onNativeNametagSettingChanged();
                 break;
+            case BUTTON_ID_DISGUISE_NAMETAG_COLOR:
+                openColorPicker((ColorSwatchButton) button, ModSettings::setDisguiseNametagColor);
+                break;
             case BUTTON_ID_HITTABLE_NAMETAG_BOX:
                 ModSettings.setShowHittableNametagBoundingBox(!ModSettings.shouldShowHittableNametagBoundingBox());
                 ((ToggleButton)button).setStatusEnabled(ModSettings.shouldShowHittableNametagBoundingBox());
                 break;
+            case BUTTON_ID_HITTABLE_NAMETAG_BOX_COLOR:
+                openColorPicker((ColorSwatchButton) button, ModSettings::setHittableNametagBoundingBoxColor);
+                break;
             case BUTTON_ID_SERVERSIDE_BOUNDING_BOX:
                 ModSettings.setShowServersideBoundingBox(!ModSettings.shouldShowServersideBoundingBox());
                 ((ToggleButton)button).setStatusEnabled(ModSettings.shouldShowServersideBoundingBox());
+                break;
+            case BUTTON_ID_SERVERSIDE_BOUNDING_BOX_COLOR:
+                openColorPicker((ColorSwatchButton) button, ModSettings::setServersideBoundingBoxColor);
                 break;
             case BUTTON_ID_DONE:
                 saveSettings();
@@ -186,6 +233,18 @@ public class AresConfigScreen extends GuiScreen {
     }
 
     @Override
+    protected void mouseClicked(final int mouseX, final int mouseY, final int mouseButton) throws IOException {
+        if (colorPicker.isOpen()) {
+            if (!colorPicker.mouseClicked(mouseX, mouseY)) {
+                colorPicker.close();
+            }
+            return;
+        }
+
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
     public void drawScreen(final int mouseX, final int mouseY, final float partialTicks) {
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRendererObj, "Ares Settings", this.width / 2, getTitleY(), 0xFFFFFF);
@@ -196,7 +255,25 @@ public class AresConfigScreen extends GuiScreen {
             this.drawCenteredString(this.fontRendererObj, statusMessage, this.width / 2, getSettingsBottom() + 10, COLOR_RED);
         }
 
-        super.drawScreen(mouseX, mouseY, partialTicks);
+        final int buttonMouseX = colorPicker.isOpen() ? -1 : mouseX;
+        final int buttonMouseY = colorPicker.isOpen() ? -1 : mouseY;
+        super.drawScreen(buttonMouseX, buttonMouseY, partialTicks);
+        colorPicker.draw(mouseX, mouseY, this.width, this.height);
+    }
+
+    private void openColorPicker(
+            @NotNull final ColorSwatchButton button,
+            @NotNull final Consumer<AresColor> setter) {
+        colorPicker.open(
+                button.getColor(),
+                color -> {
+                    setter.accept(color);
+                    button.setColor(color);
+                },
+                button.xPosition,
+                button.yPosition + button.height / 2,
+                this.width,
+                this.height);
     }
 
     private void updateRenderDistanceWeight(final int renderDistanceWeight) {
@@ -254,9 +331,15 @@ public class AresConfigScreen extends GuiScreen {
         labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Use Native Nametag", panelLeft, labelY + 6, 0xFFFFFF);
         labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Disguise Nametag Color", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Show Nametag BoundingBox", panelLeft, labelY + 6, 0xFFFFFF);
         labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Nametag BoundingBox Color", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
         this.drawString(this.fontRendererObj, "Show Serverside BoundingBox", panelLeft, labelY + 6, 0xFFFFFF);
+        labelY += CONTROL_SPACING;
+        this.drawString(this.fontRendererObj, "Serverside BoundingBox Color", panelLeft, labelY + 6, 0xFFFFFF);
     }
 
     private void drawCenteredSplitString(
@@ -343,6 +426,52 @@ public class AresConfigScreen extends GuiScreen {
                     this.xPosition + this.width / 2,
                     this.yPosition + (this.height - 8) / 2,
                     this.statusEnabled ? COLOR_GREEN : COLOR_RED);
+        }
+    }
+
+    private static class ColorSwatchButton extends GuiButton {
+
+        private static final int COLOR_BORDER = 0xFF1A1A1A;
+        private static final int COLOR_HOVER_BORDER = 0xFFFFFFFF;
+
+        @NotNull private AresColor color;
+
+        ColorSwatchButton(
+                final int buttonId,
+                final int x,
+                final int y,
+                final int widthIn,
+                final int heightIn,
+                @NotNull final AresColor color) {
+            super(buttonId, x, y, widthIn, heightIn, "");
+            this.color = color;
+        }
+
+        @NotNull AresColor getColor() {
+            return color;
+        }
+
+        void setColor(@NotNull final AresColor color) {
+            this.color = color;
+        }
+
+        @Override
+        public void drawButton(@NotNull final Minecraft minecraft, final int mouseX, final int mouseY) {
+            if (!this.visible) {
+                return;
+            }
+
+            this.hovered = mouseX >= this.xPosition
+                    && mouseY >= this.yPosition
+                    && mouseX < this.xPosition + this.width
+                    && mouseY < this.yPosition + this.height;
+
+            final int left = this.xPosition;
+            final int top = this.yPosition;
+            final int right = this.xPosition + this.width;
+            final int bottom = this.yPosition + this.height;
+            drawRect(left, top, right, bottom, this.hovered ? COLOR_HOVER_BORDER : COLOR_BORDER);
+            drawRect(left + 1, top + 1, right - 1, bottom - 1, this.color.getArgb());
         }
     }
 

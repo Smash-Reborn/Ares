@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import sh.smsh.ares.forge.disguise.DisguiseDetectionController;
 import sh.smsh.ares.forge.disguise.MineplexNametagFixController;
+import sh.smsh.ares.forge.disguise.WitherImageNametagController;
 
 @Mixin(NetHandlerPlayClient.class)
 public abstract class MixinNetHandlerPlayClient {
@@ -41,12 +42,14 @@ public abstract class MixinNetHandlerPlayClient {
 
         DisguiseDetectionController.onLivingEntitySpawnOrMetadata(packet.getEntityId());
         MineplexNametagFixController.onEntityMetadata(packet.getEntityId());
+        WitherImageNametagController.onEntityMetadata(packet.getEntityId());
     }
 
     @Inject(method = "handleEntityAttach", at = @At("RETURN"))
     private void ares$onEntityAttach(final S1BPacketEntityAttach packet, final CallbackInfo ci) {
         if (packet != null) {
             MineplexNametagFixController.onEntityAttach(packet.getEntityId(), packet.getVehicleEntityId());
+            WitherImageNametagController.onEntityAttach(packet.getEntityId(), packet.getVehicleEntityId());
         }
     }
 

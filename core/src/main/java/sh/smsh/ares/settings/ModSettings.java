@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.AresLog;
+import sh.smsh.ares.config.AresColor;
 import sh.smsh.ares.config.ModSettingsConfig;
 import sh.smsh.ares.config.ModSettingsLoader;
 import sh.smsh.ares.disguise.DisguiseRegistry;
@@ -89,6 +90,15 @@ public final class ModSettings {
         config.setUseNativeNametag(useNativeNametag);
     }
 
+    @NotNull
+    public static AresColor getDisguiseNametagColor() {
+        return AresColor.orDefault(config.getDisguiseNametagColor(), AresColor.YELLOW);
+    }
+
+    public static void setDisguiseNametagColor(@NotNull final AresColor disguiseNametagColor) {
+        config.setDisguiseNametagColor(disguiseNametagColor);
+    }
+
     public static boolean shouldShowHittableNametagBoundingBox() {
         return config.isShowHittableNametagBoundingBox();
     }
@@ -97,12 +107,30 @@ public final class ModSettings {
         config.setShowHittableNametagBoundingBox(showHittableNametagBoundingBox);
     }
 
+    @NotNull
+    public static AresColor getHittableNametagBoundingBoxColor() {
+        return AresColor.orDefault(config.getHittableNametagBoundingBoxColor(), AresColor.BLUE);
+    }
+
+    public static void setHittableNametagBoundingBoxColor(@NotNull final AresColor hittableNametagBoundingBoxColor) {
+        config.setHittableNametagBoundingBoxColor(hittableNametagBoundingBoxColor);
+    }
+
     public static boolean shouldShowServersideBoundingBox() {
         return config.isShowServersideBoundingBox();
     }
 
     public static void setShowServersideBoundingBox(final boolean showServersideBoundingBox) {
         config.setShowServersideBoundingBox(showServersideBoundingBox);
+    }
+
+    @NotNull
+    public static AresColor getServersideBoundingBoxColor() {
+        return AresColor.orDefault(config.getServersideBoundingBoxColor(), AresColor.GREEN);
+    }
+
+    public static void setServersideBoundingBoxColor(@NotNull final AresColor serversideBoundingBoxColor) {
+        config.setServersideBoundingBoxColor(serversideBoundingBoxColor);
     }
 
     public static boolean saveConfig() {
