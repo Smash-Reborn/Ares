@@ -14,8 +14,8 @@ import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.disguise.nametag.MineplexNametagFix;
 import sh.smsh.ares.disguise.nametag.MineplexNametagFixRegistry;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
+import sh.smsh.ares.feature.impl.NativeNametagFeature;
 import sh.smsh.ares.gate.ServerGate;
-import sh.smsh.ares.settings.ModSettings;
 import sh.smsh.ares.util.TextFormattingUtil;
 
 import java.util.Iterator;
@@ -142,7 +142,7 @@ public final class MineplexNametagFixController {
 
             final MineplexNametagFix fix = MineplexNametagFixRegistry.getByArmorStandEntityId(entityId);
 
-            if (fix != null && ModSettings.shouldUseNativeNametag()) {
+            if (fix != null && NativeNametagFeature.shouldApply()) {
                 blankArmorStandName((EntityArmorStand) entity);
             }
         }
@@ -216,7 +216,7 @@ public final class MineplexNametagFixController {
                     storedName);
             MineplexNametagFixRegistry.register(fix);
 
-            if (ModSettings.shouldUseNativeNametag()) {
+            if (NativeNametagFeature.shouldApply()) {
                 blankArmorStandName((EntityArmorStand) passenger);
             }
         }
@@ -253,7 +253,7 @@ public final class MineplexNametagFixController {
     }
 
     public static void onNativeNametagSettingChanged() {
-        lastUseNativeNametag = ModSettings.shouldUseNativeNametag();
+        lastUseNativeNametag = NativeNametagFeature.shouldApply();
         if (lastUseNativeNametag) {
             applyNativeNametag();
         } else {
@@ -277,7 +277,7 @@ public final class MineplexNametagFixController {
     }
 
     public static boolean shouldForceRenderDisguiseName(@Nullable final Entity entity) {
-        if (entity == null || !ModSettings.shouldUseNativeNametag() || !isMineplexActive()) {
+        if (entity == null || !NativeNametagFeature.shouldApply() || !isMineplexActive()) {
             return false;
         }
 
@@ -304,7 +304,7 @@ public final class MineplexNametagFixController {
         clearPending();
         revertNativeNametag();
         MineplexNametagFixRegistry.clear();
-        lastUseNativeNametag = ModSettings.shouldUseNativeNametag();
+        lastUseNativeNametag = NativeNametagFeature.shouldApply();
     }
 
     private static void clearPending() {
@@ -314,7 +314,7 @@ public final class MineplexNametagFixController {
     }
 
     private static void syncNativeNametagSetting() {
-        final boolean current = ModSettings.shouldUseNativeNametag();
+        final boolean current = NativeNametagFeature.shouldApply();
         if (current == lastUseNativeNametag) {
             return;
         }
@@ -361,7 +361,7 @@ public final class MineplexNametagFixController {
     }
 
     private static void enforceBlankArmorStandNames() {
-        if (!ModSettings.shouldUseNativeNametag()) {
+        if (!NativeNametagFeature.shouldApply()) {
             return;
         }
 
@@ -430,7 +430,7 @@ public final class MineplexNametagFixController {
 
         removeWolfLinksForDisguise(disguiseEntityId);
 
-        if (restoreArmorStand && ModSettings.shouldUseNativeNametag()) {
+        if (restoreArmorStand && NativeNametagFeature.shouldApply()) {
             final Minecraft mc = Minecraft.getMinecraft();
 
             if (mc.theWorld != null) {

@@ -6,6 +6,7 @@
   "disableArrowBouncingAnimation": true,
   "disableRandomEndermanTeleports": true,
   "trackDisguises": true,
+  "showSelfDisguiseEntity": false,
   "useNativeNametag": true,
   "disguiseNametagColor": "YELLOW",
   "showHittableNametagBoundingBox": true,

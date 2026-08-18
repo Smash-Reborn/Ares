@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.config.AresColor;
 import sh.smsh.ares.disguise.DisguiseRegistry;
-import sh.smsh.ares.settings.ModSettings;
+import sh.smsh.ares.feature.impl.HittableNametagBoundingBoxFeature;
+import sh.smsh.ares.feature.impl.ServersideBoundingBoxFeature;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisguiseDebugBoxRenderer {
@@ -38,8 +39,8 @@ public final class DisguiseDebugBoxRenderer {
             return;
         }
 
-        final boolean showHittableNametag = ModSettings.shouldShowHittableNametagBoundingBox();
-        final boolean showServersideBox = ModSettings.shouldShowServersideBoundingBox();
+        final boolean showHittableNametag = HittableNametagBoundingBoxFeature.shouldApply();
+        final boolean showServersideBox = ServersideBoundingBoxFeature.shouldApply();
         final int wolfEntityId = showHittableNametag
                 ? MineplexNametagFixController.getTrackedWolfEntityIdForDisguise(entity.getEntityId())
                 : -1;
@@ -57,7 +58,7 @@ public final class DisguiseDebugBoxRenderer {
 
         try {
             if (drawWolfBox) {
-                final AresColor hittableColor = ModSettings.getHittableNametagBoundingBoxColor();
+                final AresColor hittableColor = HittableNametagBoundingBoxFeature.getColor();
                 RenderGlobal.drawOutlinedBoundingBox(
                         toWolfBoxOnTopOfDisguise(entity, x, y, z, wolfEntityId),
                         hittableColor.getRed(),
@@ -67,7 +68,7 @@ public final class DisguiseDebugBoxRenderer {
             }
 
             if (showServersideBox) {
-                final AresColor serversideColor = ModSettings.getServersideBoundingBoxColor();
+                final AresColor serversideColor = ServersideBoundingBoxFeature.getColor();
                 RenderGlobal.drawOutlinedBoundingBox(
                         toPlayerSizedBox(x, y, z),
                         serversideColor.getRed(),

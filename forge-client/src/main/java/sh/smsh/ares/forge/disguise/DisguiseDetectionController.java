@@ -125,6 +125,7 @@ public final class DisguiseDetectionController {
         lastSelfHeadKey = null;
         WitherImageNametagController.clear();
         MineplexNametagFixController.clear();
+        SelfDisguiseRenderController.clear();
         DisguiseRegistry.clear();
     }
 

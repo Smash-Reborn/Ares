@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import sh.smsh.ares.feature.impl.NativeNametagFeature;
 import sh.smsh.ares.forge.disguise.MineplexNametagFixController;
-import sh.smsh.ares.settings.ModSettings;
 
 @Mixin(RendererLivingEntity.class)
 public abstract class MixinRendererLivingEntity {
@@ -39,6 +39,6 @@ public abstract class MixinRendererLivingEntity {
             return formattedText;
         }
 
-        return ModSettings.getDisguiseNametagColor().applyTo(formattedText);
+        return NativeNametagFeature.getNametagColor().applyTo(formattedText);
     }
 }

@@ -82,6 +82,14 @@ public final class ModSettings {
         }
     }
 
+    public static boolean shouldShowSelfDisguiseEntity() {
+        return config.isShowSelfDisguiseEntity();
+    }
+
+    public static void setShowSelfDisguiseEntity(final boolean showSelfDisguiseEntity) {
+        config.setShowSelfDisguiseEntity(showSelfDisguiseEntity);
+    }
+
     public static boolean shouldUseNativeNametag() {
         return config.isUseNativeNametag();
     }

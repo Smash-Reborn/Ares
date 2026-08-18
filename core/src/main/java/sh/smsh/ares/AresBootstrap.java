@@ -7,6 +7,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.config.ModSettingsConfig;
 import sh.smsh.ares.config.ServerWhitelistConfig;
+import sh.smsh.ares.feature.FeatureBootstrap;
 import sh.smsh.ares.gate.ServerGate;
 import sh.smsh.ares.settings.ModSettings;
 
@@ -27,6 +28,7 @@ public final class AresBootstrap {
         ModSettings.initialize(
                 configDir.resolve(AresConstants.SETTINGS_CONFIG_FILE),
                 loadDefaultConfig("default_settings.json", ModSettingsConfig.class, classLoader));
+        FeatureBootstrap.registerAll();
     }
 
     public static void reloadConfig() {

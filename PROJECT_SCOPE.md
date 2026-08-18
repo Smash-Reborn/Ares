@@ -11,8 +11,15 @@
 - [ ] Chat message which tells you whether the mod is actively enabled on the server (delayed so server JOIN messages are shown first)
 - [ ] Backport GLOWING render from modern versions (with full RGB color support) and allow players & their respective projectiles to be GLOWING during gameplay. (for teams mode, can make the GLOW match the team color so you can differentiate between teams)
 - [x] Color selector config options for hittable nametag AABB, serverside player AABB and player nametag color
-- [ ] Give each disguise mob its own sneaking animation ? (technically the data-watcher updates this field, at least on mineplex, so its doable)
-- [ ] Allow disguise mobs to inherit their disguised players capes, rendered at certain positions per mob (ig a modded backport of my modern disguise impl)
+- [x] Allow player self disguise to render instead of only the player model
 
 - [x] Proper MC-MOD description & sprite icon
 - [ ] Simple build scripts that will automatically compile all/various platform versions of the mod (automatically handle JDK and gradle version selection)
+
+
+### FUTURE CONSIDERATIONS
+
+- Better abstract way to 'gate' features for specific servers
+- Better way to determine how specific servers enter certain game-state phases (mineplex vs reborn, etc)
+- Remove some slop-bloat that has now been created due to feature creep
+- Abstract certain methodologies (mineplex nametag-fix, invis entities, etc) which are used in multiple places

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.disguise.DisguiseBinding;
 import sh.smsh.ares.disguise.DisguiseRegistry;
-import sh.smsh.ares.settings.ModSettings;
+import sh.smsh.ares.feature.impl.NativeNametagFeature;
 import sh.smsh.ares.util.TextFormattingUtil;
 
 import java.util.Iterator;
@@ -216,7 +216,7 @@ public final class WitherImageNametagController {
             return;
         }
 
-        final String colored = ModSettings.getDisguiseNametagColor().applyTo(current);
+        final String colored = NativeNametagFeature.getNametagColor().applyTo(current);
         if (!colored.equals(current)) {
             entity.setCustomNameTag(colored);
         }

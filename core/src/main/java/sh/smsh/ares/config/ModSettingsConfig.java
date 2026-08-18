@@ -11,6 +11,7 @@ public class ModSettingsConfig {
     private boolean disableArrowBouncingAnimation = true;
     private boolean disableRandomEndermanTeleports = true;
     private boolean trackDisguises = true;
+    private boolean showSelfDisguiseEntity = false;
     private boolean useNativeNametag = true;
     private AresColor disguiseNametagColor = AresColor.YELLOW;
     private boolean showHittableNametagBoundingBox = true;
