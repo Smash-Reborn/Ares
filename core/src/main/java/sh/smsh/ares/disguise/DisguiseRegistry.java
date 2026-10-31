@@ -19,7 +19,7 @@ public final class DisguiseRegistry {
     @NotNull private static final Map<String, DisguiseBinding> byPlayerName = new ConcurrentHashMap<>();
 
     /**
-     * @return false when that player is already bound to a different entity
+     * Binds this player to this entity, replacing any previous entity for that player.
      */
     public static boolean tryRegister(
             final int entityId,
@@ -28,18 +28,13 @@ public final class DisguiseRegistry {
             @NotNull final String headKey,
             final boolean selfInferred) {
 
-        final DisguiseBinding existingByName = byPlayerName.get(playerName);
-        if (existingByName != null && existingByName.getEntityId() != entityId) {
-            return false;
-        }
-
         final String resolvedHeadKey = headKey.isEmpty() ? UNKNOWN_HEAD_KEY : headKey;
         final DisguiseBinding binding =
                 new DisguiseBinding(entityId, playerName, rawCustomName, resolvedHeadKey, selfInferred);
 
         final DisguiseBinding previousByName = byPlayerName.put(playerName, binding);
         if (previousByName != null && previousByName.getEntityId() != entityId) {
-            byEntityId.remove(previousByName.getEntityId());
+            byEntityId.remove(previousByName.getEntityId(), previousByName);
         }
 
         final DisguiseBinding previousById = byEntityId.put(entityId, binding);

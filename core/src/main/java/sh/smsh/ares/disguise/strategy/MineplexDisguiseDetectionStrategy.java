@@ -11,6 +11,7 @@ import sh.smsh.ares.util.TextFormattingUtil;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public final class MineplexDisguiseDetectionStrategy implements DisguiseDetectionStrategy {
@@ -42,12 +43,14 @@ public final class MineplexDisguiseDetectionStrategy implements DisguiseDetectio
             new SelfKitRule(IRON_SWORD, "sheep", "Static Laser"),
             new SelfKitRule(IRON_AXE, "villager", "Sonic Hurr"),
             new SelfKitRule(IRON_AXE, "goat", "Goated Hurr"),
-            new SelfKitRule(IRON_AXE, "mooshroom", "Strawberry Swirl")
+            new SelfKitRule(IRON_AXE, "mooshroom", "Strawberry Swirl"),
+            new SelfKitRule(IRON_AXE, "phantom", "Ravenous Membrane"),
+            new SelfKitRule(IRON_SWORD, "phantom", "Soul Swooper")
     );
 
     @Override
     public boolean supports(@NotNull final ServerType serverType) {
-        return serverType == ServerType.MINEPLEX;
+        return serverType == ServerType.MINEPLEX || serverType == ServerType.SSM_REBORN_LEGACY;
     }
 
     @Override
@@ -106,12 +109,43 @@ public final class MineplexDisguiseDetectionStrategy implements DisguiseDetectio
         }
 
         for (final String playerName : participatingPlayers) {
-            if (stripped.equals(playerName)) {
+            if (stripped.equalsIgnoreCase(playerName)) {
                 return playerName;
             }
         }
 
-        return null;
+        String best = null;
+        for (final String playerName : participatingPlayers) {
+            if (containsWholeName(stripped, playerName) && (best == null || playerName.length() > best.length())) {
+                best = playerName;
+            }
+        }
+        return best;
+    }
+
+    private static boolean containsWholeName(@NotNull final String text, @NotNull final String name) {
+        final String lowerText = text.toLowerCase(Locale.ROOT);
+        final String lowerName = name.toLowerCase(Locale.ROOT);
+        int from = 0;
+        while (from <= lowerText.length() - lowerName.length()) {
+            final int index = lowerText.indexOf(lowerName, from);
+            if (index < 0) {
+                return false;
+            }
+
+            final int end = index + lowerName.length();
+            final boolean before = index == 0 || !isNameChar(lowerText.charAt(index - 1));
+            final boolean after = end == lowerText.length() || !isNameChar(lowerText.charAt(end));
+            if (before && after) {
+                return true;
+            }
+            from = index + 1;
+        }
+        return false;
+    }
+
+    private static boolean isNameChar(final char character) {
+        return character == '_' || Character.isLetterOrDigit(character);
     }
 
     @Override

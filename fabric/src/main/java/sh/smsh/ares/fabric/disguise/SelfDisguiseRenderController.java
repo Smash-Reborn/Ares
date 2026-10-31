@@ -72,6 +72,9 @@ public final class SelfDisguiseRenderController {
     private static void copyPose(@NotNull final LivingEntity dummy, @NotNull final LocalPlayer self) {
         dummy.setId(self.getId());
         dummy.setPos(self.getX(), self.getY(), self.getZ());
+        dummy.xo = self.xo;
+        dummy.yo = self.yo;
+        dummy.zo = self.zo;
         dummy.xOld = self.xOld;
         dummy.yOld = self.yOld;
         dummy.zOld = self.zOld;

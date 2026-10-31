@@ -12,7 +12,14 @@
 
 ## Supported Features
 - Dynamic-extended entity render distance, allows you to see entities from far away
-- Anti arrow bounce animation, prevents arrows from playing the bounce animation clientside when players miss with arrow projectiles
+- Disable arrow bounce animation, prevents arrows from playing the bounce animation clientside when players miss with arrow projectiles
+- Native tracking of clientside disguises, including states, metadata, animations, etc. Can also show self-disguise of player when using 3rd person
+- Toggle debug bounding boxes for entities, hooks directly into disguises and combat components
+- Highlighting bounding boxes when within combat attacking distance and syncs with mineplex item components
+- Legacy damage tilt (1.8) can be played to overwrite the modern version
+- Legacy damage sound (1.8) (generic_hurt) can be played when being damaged
+- Disable damage indicators text displays
+- Disable ambient disguise sound effects (walking, idle, etc)
 - Configurable preferences with a native in-game settings menu via `/ssmprefs`<br><br>
 
 ## Compiling & Building

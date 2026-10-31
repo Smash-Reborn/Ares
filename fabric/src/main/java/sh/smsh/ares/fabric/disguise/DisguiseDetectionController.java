@@ -9,14 +9,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.wolf.Wolf;
-import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.scores.Objective;
-import net.minecraft.world.scores.PlayerScoreEntry;
-import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.DisplaySlot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.disguise.DisguiseBinding;
@@ -24,11 +18,13 @@ import sh.smsh.ares.disguise.DisguiseDetectionStrategy;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.disguise.DisguiseStrategies;
 import sh.smsh.ares.disguise.self.SelfHotbarItem;
+import sh.smsh.ares.feature.impl.DisableAmbientDisguiseSoundsFeature;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.util.TextFormattingUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -53,7 +49,7 @@ public final class DisguiseDetectionController {
             return;
         }
 
-        considerLivingEntity(minecraft.level.getEntity(entityId), false);
+        considerEntity(minecraft.level.getEntity(entityId));
     }
 
     public static void onEntitiesRemoved(@NotNull final int[] entityIds) {
@@ -72,13 +68,8 @@ public final class DisguiseDetectionController {
         DisguiseRegistry.clear();
     }
 
-    private static void considerLivingEntity(@Nullable final Entity entity, final boolean skipIfPlayerAlreadyTracked) {
-        if (!(entity instanceof LivingEntity) || entity instanceof Player) {
-            return;
-        }
-
-        // Armor stands and invisible wolves are Mineplex nametag scaffolding, not the disguise mob.
-        if (entity instanceof ArmorStand || (entity instanceof Wolf && entity.isInvisible())) {
+    private static void considerEntity(@Nullable final Entity entity) {
+        if (entity == null || entity instanceof Player) {
             return;
         }
 
@@ -87,8 +78,12 @@ public final class DisguiseDetectionController {
             return;
         }
 
-        final String customName = entity.getCustomName() == null ? "" : entity.getCustomName().getString();
-        if (customName.isEmpty()) {
+        if (!(entity instanceof LivingEntity)) {
+            return;
+        }
+
+        final String matchedPlayer = matchedPlayer(strategy, entity);
+        if (matchedPlayer == null) {
             final DisguiseBinding existing = DisguiseRegistry.getByEntityId(entity.getId());
             if (existing != null && !existing.isSelfInferred()) {
                 DisguiseRegistry.unregisterByEntityId(entity.getId());
@@ -96,21 +91,62 @@ public final class DisguiseDetectionController {
             return;
         }
 
-        final String matchedPlayer = strategy.matchPlayerFromCustomName(customName, participatingPlayers);
-        if (matchedPlayer == null) {
-            return;
-        }
+        registerDisguise(entity, matchedPlayer, entity.getCustomName().getString());
+    }
 
-        if (skipIfPlayerAlreadyTracked && DisguiseRegistry.getByPlayerName(matchedPlayer) != null) {
+    private static void registerDisguise(
+            @NotNull final Entity mob,
+            @NotNull final String playerName,
+            @Nullable final String rawCustomName) {
+
+        mob.setSilent(DisableAmbientDisguiseSoundsFeature.shouldApply());
+
+        final DisguiseBinding existing = DisguiseRegistry.getByPlayerName(playerName);
+        if (existing != null && existing.getEntityId() != mob.getId() && disguiseStillValid(existing)) {
             return;
         }
 
         DisguiseRegistry.tryRegister(
-                entity.getId(),
-                matchedPlayer,
-                customName,
-                DisguiseHeads.resolveHeadKey(entity),
+                mob.getId(),
+                playerName,
+                rawCustomName,
+                DisguiseHeads.resolveHeadKey(mob),
                 false);
+    }
+
+    @Nullable
+    private static String matchedPlayer(@NotNull final DisguiseDetectionStrategy strategy, @NotNull final Entity entity) {
+        if (entity.getCustomName() == null) {
+            return null;
+        }
+        return strategy.matchPlayerFromCustomName(entity.getCustomName().getString(), participatingPlayers);
+    }
+
+    private static boolean disguiseStillValid(@NotNull final DisguiseBinding binding) {
+        if (binding.isSelfInferred()) {
+            return false;
+        }
+
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            return false;
+        }
+
+        final Entity entity = minecraft.level.getEntity(binding.getEntityId());
+        if (!(entity instanceof LivingEntity) || entity instanceof Player) {
+            return false;
+        }
+
+        return nameMatches(entity, binding.getPlayerName());
+    }
+
+    private static boolean nameMatches(@Nullable final Entity entity, @NotNull final String playerName) {
+        final DisguiseDetectionStrategy strategy = DisguiseStrategies.forCurrentServer();
+        if (strategy == null || entity == null || entity.getCustomName() == null) {
+            return false;
+        }
+
+        return playerName.equals(strategy.matchPlayerFromCustomName(entity.getCustomName().getString(), participatingPlayers));
     }
 
     private static void refreshParticipatingPlayers() {
@@ -129,28 +165,38 @@ public final class DisguiseDetectionController {
             return;
         }
 
-        final Set<String> nextParticipating = strategy.resolveParticipatingPlayers(
-                collectTabNames(minecraft.getConnection()),
-                collectSidebarLines(minecraft.level.getScoreboard()));
+        final Set<String> nextParticipating = new LinkedHashSet<>(collectTabNames(minecraft.getConnection()));
 
-        final boolean changed = !nextParticipating.equals(participatingPlayers);
         pruneLeftPlayers(nextParticipating);
         participatingPlayers = nextParticipating;
 
-        if (!participatingPlayers.isEmpty() && (changed || hasUntrackedParticipatingPlayers())) {
+        if (!participatingPlayers.isEmpty()) {
             for (final Entity entity : minecraft.level.entitiesForRendering()) {
-                considerLivingEntity(entity, true);
+                considerEntity(entity);
             }
+            pruneStaleDisguises(minecraft);
         }
     }
 
-    private static boolean hasUntrackedParticipatingPlayers() {
-        for (final String playerName : participatingPlayers) {
-            if (DisguiseRegistry.getByPlayerName(playerName) == null) {
-                return true;
+    private static void pruneStaleDisguises(@NotNull final Minecraft minecraft) {
+        if (minecraft.level == null) {
+            return;
+        }
+
+        final LocalPlayer self = minecraft.player;
+        final List<Integer> stale = new ArrayList<>();
+        for (final DisguiseBinding binding : DisguiseRegistry.getAll()) {
+            if (binding.isSelfInferred() && self != null && binding.getEntityId() == self.getId()) {
+                continue;
+            }
+            if (!disguiseStillValid(binding)) {
+                stale.add(binding.getEntityId());
             }
         }
-        return false;
+
+        for (final int entityId : stale) {
+            DisguiseRegistry.unregisterByEntityId(entityId);
+        }
     }
 
     private static void refreshSelfDisguise() {
@@ -168,6 +214,12 @@ public final class DisguiseDetectionController {
         if (selfName.isEmpty() || !participatingPlayers.contains(selfName)) {
             lastSelfHeadKey = null;
             clearSelfInferredBinding(selfName);
+            return;
+        }
+
+        final DisguiseBinding liveDisguise = DisguiseRegistry.getByPlayerName(selfName);
+        if (liveDisguise != null && !liveDisguise.isSelfInferred() && disguiseStillValid(liveDisguise)) {
+            lastSelfHeadKey = liveDisguise.getHeadKey();
             return;
         }
 
@@ -243,33 +295,6 @@ public final class DisguiseDetectionController {
             }
         }
         return names;
-    }
-
-    @NotNull
-    private static Collection<String> collectSidebarLines(@Nullable final Scoreboard scoreboard) {
-        if (scoreboard == null) {
-            return List.of();
-        }
-
-        final Objective objective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR);
-        if (objective == null) {
-            return List.of();
-        }
-
-        final List<String> lines = new ArrayList<>();
-        for (final PlayerScoreEntry entry : scoreboard.listPlayerScores(objective)) {
-            if (entry == null || entry.isHidden()) {
-                continue;
-            }
-
-            if (entry.display() != null) {
-                lines.add(entry.display().getString());
-            }
-            if (entry.owner() != null) {
-                lines.add(entry.owner());
-            }
-        }
-        return lines;
     }
 
     @NotNull
