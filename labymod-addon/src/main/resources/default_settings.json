@@ -1,8 +1,0 @@
-{
-  "extendedRenderDistance": {
-    "enabled": true,
-    "renderDistanceWeight": 12.0
-  },
-  "disableArrowBouncingAnimation": true,
-  "disableRandomEndermanTeleports": true
-}
