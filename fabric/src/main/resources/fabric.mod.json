@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "aresmod",
+  "version": "${version}",
+  "name": "Ares",
+  "description": "Quality-of-life client mod for Super Smash Mobs servers.",
+  "authors": [
+    "Smash Reborn"
+  ],
+  "contact": {
+    "sources": "https://github.com/Smash-Reborn"
+  },
+  "icon": "assets/aresmod/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "sh.smsh.ares.fabric.AresFabricClient"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "mixins.AresMod.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

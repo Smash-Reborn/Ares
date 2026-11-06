@@ -1,0 +1,17 @@
+{
+  "extendedRenderDistance": {
+    "enabled": true,
+    "renderDistanceWeight": 12.0
+  },
+  "disableArrowBouncingAnimation": true,
+  "trackDisguises": true,
+  "showSelfDisguiseEntity": false,
+  "selfDisguiseOnCrack": false,
+  "nativeBoundingBoxes": false,
+  "highlightMeleeBoundingBox": false,
+  "highlightMeleeBoundingBoxColor": "GOLD",
+  "dynamicallyScaleDisguiseBoundingBoxes": true,
+  "legacyDamageTilt": true,
+  "disableDamageIndicators": false,
+  "disableAmbientDisguiseSounds": true
+}

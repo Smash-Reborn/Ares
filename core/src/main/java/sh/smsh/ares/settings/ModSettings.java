@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import sh.smsh.ares.AresLog;
+import sh.smsh.ares.config.AresColor;
 import sh.smsh.ares.config.ModSettingsConfig;
 import sh.smsh.ares.config.ModSettingsLoader;
 
@@ -60,12 +61,85 @@ public final class ModSettings {
         config.setDisableArrowBouncingAnimation(disableArrowBouncingAnimation);
     }
 
-    public static boolean shouldDisableRandomEndermanTeleports() {
-        return config.isDisableRandomEndermanTeleports();
+    public static boolean shouldTrackDisguises() {
+        return config.isTrackDisguises();
     }
 
-    public static void setDisableRandomEndermanTeleports(final boolean disableRandomEndermanTeleports) {
-        config.setDisableRandomEndermanTeleports(disableRandomEndermanTeleports);
+    public static void setTrackDisguises(final boolean trackDisguises) {
+        config.setTrackDisguises(trackDisguises);
+    }
+
+    public static boolean shouldShowSelfDisguiseEntity() {
+        return config.isShowSelfDisguiseEntity();
+    }
+
+    public static void setShowSelfDisguiseEntity(final boolean showSelfDisguiseEntity) {
+        config.setShowSelfDisguiseEntity(showSelfDisguiseEntity);
+    }
+
+    public static boolean isSelfDisguiseOnCrack() {
+        return config.isSelfDisguiseOnCrack();
+    }
+
+    public static void setSelfDisguiseOnCrack(final boolean selfDisguiseOnCrack) {
+        config.setSelfDisguiseOnCrack(selfDisguiseOnCrack);
+    }
+
+    public static boolean shouldForceNativeBoundingBoxes() {
+        return config.isNativeBoundingBoxes();
+    }
+
+    public static void setForceNativeBoundingBoxes(final boolean nativeBoundingBoxes) {
+        config.setNativeBoundingBoxes(nativeBoundingBoxes);
+    }
+
+    public static boolean shouldHighlightMeleeBoundingBox() {
+        return config.isHighlightMeleeBoundingBox();
+    }
+
+    public static void setHighlightMeleeBoundingBox(final boolean highlightMeleeBoundingBox) {
+        config.setHighlightMeleeBoundingBox(highlightMeleeBoundingBox);
+    }
+
+    @NotNull
+    public static AresColor getHighlightMeleeBoundingBoxColor() {
+        return AresColor.orDefault(config.getHighlightMeleeBoundingBoxColor(), AresColor.GOLD);
+    }
+
+    public static void setHighlightMeleeBoundingBoxColor(@NotNull final AresColor color) {
+        config.setHighlightMeleeBoundingBoxColor(color);
+    }
+
+    public static boolean shouldDynamicallyScaleDisguiseBoundingBoxes() {
+        return config.isDynamicallyScaleDisguiseBoundingBoxes();
+    }
+
+    public static void setDynamicallyScaleDisguiseBoundingBoxes(final boolean enabled) {
+        config.setDynamicallyScaleDisguiseBoundingBoxes(enabled);
+    }
+
+    public static boolean isLegacyDamageTilt() {
+        return config.isLegacyDamageTilt();
+    }
+
+    public static void setLegacyDamageTilt(final boolean legacyDamageTilt) {
+        config.setLegacyDamageTilt(legacyDamageTilt);
+    }
+
+    public static boolean isDisableDamageIndicators() {
+        return config.isDisableDamageIndicators();
+    }
+
+    public static void setDisableDamageIndicators(final boolean disableDamageIndicators) {
+        config.setDisableDamageIndicators(disableDamageIndicators);
+    }
+
+    public static boolean isDisableAmbientDisguiseSounds() {
+        return config.isDisableAmbientDisguiseSounds();
+    }
+
+    public static void setDisableAmbientDisguiseSounds(final boolean disableAmbientDisguiseSounds) {
+        config.setDisableAmbientDisguiseSounds(disableAmbientDisguiseSounds);
     }
 
     public static boolean saveConfig() {

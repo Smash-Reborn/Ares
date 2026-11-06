@@ -4,7 +4,7 @@ plugins {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 dependencies {
@@ -16,4 +16,5 @@ dependencies {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
+    options.release.set(25)
 }
