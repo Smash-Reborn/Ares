@@ -24,7 +24,7 @@ public final class SpawnPacketDebug {
     private static boolean enabled;
     private static final List<PendingSpawn> PENDING = new ArrayList<>();
     private static final Map<Integer, String> NOTED_TEXT = new HashMap<>();
-    private static final Set<Integer> SPAWNED_SQUIDS = new HashSet<>();
+    private static final Set<Integer> SPAWNED_INTERACTIONS = new HashSet<>();
 
     public static boolean isEnabled() {
         return enabled;
@@ -35,7 +35,7 @@ public final class SpawnPacketDebug {
         if (!enabled) {
             PENDING.clear();
             NOTED_TEXT.clear();
-            SPAWNED_SQUIDS.clear();
+            SPAWNED_INTERACTIONS.clear();
         }
         return enabled;
     }
@@ -45,8 +45,8 @@ public final class SpawnPacketDebug {
             return;
         }
 
-        if (packet.getType() == EntityTypes.SQUID) {
-            SPAWNED_SQUIDS.add(packet.getId());
+        if (packet.getType() == EntityTypes.INTERACTION) {
+            SPAWNED_INTERACTIONS.add(packet.getId());
         }
 
         PENDING.add(new PendingSpawn(
@@ -59,7 +59,7 @@ public final class SpawnPacketDebug {
     }
 
     public static void onPassengers(final ClientboundSetPassengersPacket packet) {
-        if (!enabled || SPAWNED_SQUIDS.isEmpty()) {
+        if (!enabled || SPAWNED_INTERACTIONS.isEmpty()) {
             return;
         }
 
@@ -69,13 +69,20 @@ public final class SpawnPacketDebug {
         }
 
         final Entity vehicle = minecraft.level.getEntity(packet.getVehicle());
+        if (SPAWNED_INTERACTIONS.contains(packet.getVehicle())) {
+            minecraft.player.sendSystemMessage(Component.literal(
+                    "[Ares] Interaction " + describe(vehicle, packet.getVehicle())
+                            + " carrying " + describePassengers(minecraft, packet.getPassengers())
+            ));
+        }
+
         for (final int passengerId : packet.getPassengers()) {
-            if (!SPAWNED_SQUIDS.contains(passengerId)) {
+            if (!SPAWNED_INTERACTIONS.contains(passengerId)) {
                 continue;
             }
 
             minecraft.player.sendSystemMessage(Component.literal(
-                    "[Ares] Squid id=" + passengerId
+                    "[Ares] Interaction id=" + passengerId
                             + " riding " + describe(vehicle, packet.getVehicle())
             ));
         }
@@ -89,7 +96,7 @@ public final class SpawnPacketDebug {
 
     public static void onRemoved(final int[] entityIds) {
         for (final int entityId : entityIds) {
-            SPAWNED_SQUIDS.remove(entityId);
+            SPAWNED_INTERACTIONS.remove(entityId);
         }
     }
 
@@ -140,6 +147,21 @@ public final class SpawnPacketDebug {
 
         final Component text = textDisplay.textRenderState().text();
         return text == null ? "-" : DamageIndicatorText.describe(text.getString());
+    }
+
+    private static String describePassengers(final Minecraft minecraft, final int[] passengerIds) {
+        if (passengerIds.length == 0) {
+            return "none";
+        }
+
+        final StringBuilder passengers = new StringBuilder();
+        for (int index = 0; index < passengerIds.length; index++) {
+            if (index > 0) {
+                passengers.append(", ");
+            }
+            passengers.append(describe(minecraft.level.getEntity(passengerIds[index]), passengerIds[index]));
+        }
+        return passengers.toString();
     }
 
     private static String describe(final Entity vehicle, final int vehicleId) {

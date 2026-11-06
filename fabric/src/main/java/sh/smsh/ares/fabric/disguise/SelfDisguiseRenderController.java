@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.disguise.DisguiseBinding;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.feature.impl.SelfDisguiseEntityFeature;
+import sh.smsh.ares.settings.ModSettings;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SelfDisguiseRenderController {
@@ -21,6 +22,7 @@ public final class SelfDisguiseRenderController {
     private static boolean preservePlayerState;
     @Nullable private static LivingEntity dummy;
     @Nullable private static String dummyHeadKey;
+    private static int lastWalkTick = Integer.MIN_VALUE;
 
     public static boolean isRendering() {
         return rendering;
@@ -89,8 +91,27 @@ public final class SelfDisguiseRenderController {
         dummy.setPose(self.getPose());
         dummy.setOnGround(self.onGround());
         dummy.setDeltaMovement(self.getDeltaMovement());
-        dummy.walkAnimation.setSpeed(self.walkAnimation.speed());
         dummy.tickCount = self.tickCount;
+        syncWalk(dummy, self);
+    }
+
+    /**
+     * Limb, spike, and other appendage motion comes from how far the entity moved since the last tick.
+     * A real mob applies that once per tick and the renderer interpolates it. Applying it on every
+     * position copy makes those parts flail.
+     */
+    private static void syncWalk(@NotNull final LivingEntity dummy, @NotNull final LocalPlayer self) {
+        if (ModSettings.isSelfDisguiseOnCrack()) {
+            dummy.calculateEntityAnimation(false);
+            return;
+        }
+
+        if (self.tickCount == lastWalkTick) {
+            return;
+        }
+
+        lastWalkTick = self.tickCount;
+        dummy.calculateEntityAnimation(false);
     }
 
     public static void beginRendering() {
@@ -104,6 +125,7 @@ public final class SelfDisguiseRenderController {
     public static void clear() {
         dummy = null;
         dummyHeadKey = null;
+        lastWalkTick = Integer.MIN_VALUE;
         rendering = false;
         preservePlayerState = false;
     }

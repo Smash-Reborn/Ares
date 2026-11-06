@@ -13,7 +13,8 @@
     "MixinKeyboardHandler",
     "MixinLevelExtractor",
     "MixinPlayerTabOverlay",
-    "MixinProjectileRenderDistance"
+    "MixinProjectileRenderDistance",
+    "MixinSoundEngine"
   ],
   "server": [],
   "injectors": {

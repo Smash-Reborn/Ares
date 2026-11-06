@@ -11,12 +11,12 @@ public class ModSettingsConfig {
     private boolean disableArrowBouncingAnimation = true;
     private boolean trackDisguises = true;
     private boolean showSelfDisguiseEntity = false;
+    private boolean selfDisguiseOnCrack = false;
     private boolean nativeBoundingBoxes = false;
     private boolean highlightMeleeBoundingBox = false;
     private AresColor highlightMeleeBoundingBoxColor = AresColor.GOLD;
     private boolean dynamicallyScaleDisguiseBoundingBoxes = true;
     private boolean legacyDamageTilt = true;
-    private boolean legacyDamageSound = true;
     private boolean disableDamageIndicators = false;
     private boolean disableAmbientDisguiseSounds = true;
 

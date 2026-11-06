@@ -15,8 +15,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.fabric.disguise.DisguiseHitboxMargin;
 import sh.smsh.ares.feature.impl.HighlightMeleeBoundingBoxFeature;
+import sh.smsh.ares.feature.impl.NativeBoundingBoxesFeature;
 import sh.smsh.ares.settings.ModSettings;
 
 @Mixin(EntityHitboxDebugRenderer.class)
@@ -27,6 +29,21 @@ public abstract class MixinEntityHitboxDebugRenderer {
     @Inject(method = "showHitboxes", at = @At("HEAD"))
     private void ares$captureEntity(final Entity entity, final float partialTick, final boolean green, final CallbackInfo ci) {
         this.ares$entity = entity;
+    }
+
+    /**
+     * Vanilla skips invisible entities before drawing a hitbox. An owned squid is the disguise's hitbox.
+     */
+    @Redirect(
+            method = "emitGizmos",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isInvisible()Z")
+    )
+    private boolean ares$showOwnedSquidHitbox(final Entity entity) {
+        if (NativeBoundingBoxesFeature.shouldApply() && DisguiseRegistry.isOwnedSquid(entity.getId())) {
+            return false;
+        }
+
+        return entity.isInvisible();
     }
 
     @Redirect(
@@ -69,6 +86,24 @@ public abstract class MixinEntityHitboxDebugRenderer {
         }
 
         final HitResult hit = minecraft.hitResult;
-        return hit instanceof EntityHitResult entityHit && entityHit.getEntity() == entity;
+        if (hit instanceof EntityHitResult entityHit && entityHit.getEntity() == entity) {
+            return true;
+        }
+
+        final Integer ownerId = DisguiseRegistry.getDisguiseForSquid(entity.getId());
+        if (ownerId == null || minecraft.level == null) {
+            return false;
+        }
+
+        final Entity owner = minecraft.level.getEntity(ownerId);
+        if (owner == null) {
+            return false;
+        }
+
+        if (minecraft.crosshairPickEntity == owner) {
+            return true;
+        }
+
+        return hit instanceof EntityHitResult ownerHit && ownerHit.getEntity() == owner;
     }
 }

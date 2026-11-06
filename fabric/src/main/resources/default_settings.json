@@ -6,12 +6,12 @@
   "disableArrowBouncingAnimation": true,
   "trackDisguises": true,
   "showSelfDisguiseEntity": false,
+  "selfDisguiseOnCrack": false,
   "nativeBoundingBoxes": false,
   "highlightMeleeBoundingBox": false,
   "highlightMeleeBoundingBoxColor": "GOLD",
   "dynamicallyScaleDisguiseBoundingBoxes": true,
   "legacyDamageTilt": true,
-  "legacyDamageSound": true,
   "disableDamageIndicators": false,
   "disableAmbientDisguiseSounds": true
 }

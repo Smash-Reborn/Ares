@@ -84,6 +84,12 @@ public final class AresConfigScreen extends Screen {
             ModSettings.setShowSelfDisguiseEntity(!ModSettings.shouldShowSelfDisguiseEntity());
             return ModSettings.shouldShowSelfDisguiseEntity();
         });
+        addToggle("Self Disguise on Crack",
+                "When true, disguises display using a broken flailing render bug, causing their arms, legs and other appendages to constantly move like the disguise is on crack. This only applies to self-disguises. Set to false to make the disguise render and move like normal",
+                ModSettings.isSelfDisguiseOnCrack(), () -> {
+            ModSettings.setSelfDisguiseOnCrack(!ModSettings.isSelfDisguiseOnCrack());
+            return ModSettings.isSelfDisguiseOnCrack();
+        });
         addToggle("Native Bounding Boxes",
                 "Restores 1.8 bounding box visual functionality, so you can see all entity bounding boxes. Disguise-based bounding boxes are tracked individually to allow for extra functionality.",
                 ModSettings.shouldForceNativeBoundingBoxes(), () -> {
@@ -110,12 +116,6 @@ public final class AresConfigScreen extends Screen {
             ModSettings.setLegacyDamageTilt(!ModSettings.isLegacyDamageTilt());
             return ModSettings.isLegacyDamageTilt();
         });
-        addToggle("Legacy Damage Sound",
-                "In 1.8, when taking damage, both the entity sound and a generic hurt sound would play, to distinctively indicate to the player that they were being damaged. If enabled, this restores that functionality. NOTE: \"Disable Ambient Disguise Sounds\" must be true in order for this to work, as the passive sounds are linked to the hurt sounds.",
-                ModSettings.isLegacyDamageSound(), () -> {
-            ModSettings.setLegacyDamageSound(!ModSettings.isLegacyDamageSound());
-            return ModSettings.isLegacyDamageSound();
-        });
         addToggle("Disable Damage Indicators",
                 "When enabled, you will not render any text display entities which are used as damage indicators.",
                 ModSettings.isDisableDamageIndicators(), () -> {
@@ -123,7 +123,7 @@ public final class AresConfigScreen extends Screen {
             return ModSettings.isDisableDamageIndicators();
         });
         addToggle("Disable Ambient Disguise Sounds",
-                "When enabled, your client will not play any ambient hurt, death, step, walk, idle, etc sound effects.",
+                "When enabled, a sound is cancelled if it belongs to a mob type that any active disguise is using.",
                 ModSettings.isDisableAmbientDisguiseSounds(), () -> {
             ModSettings.setDisableAmbientDisguiseSounds(!ModSettings.isDisableAmbientDisguiseSounds());
             return ModSettings.isDisableAmbientDisguiseSounds();

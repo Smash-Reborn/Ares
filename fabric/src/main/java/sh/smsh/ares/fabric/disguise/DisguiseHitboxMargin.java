@@ -28,7 +28,8 @@ public final class DisguiseHitboxMargin {
     }
 
     public static double marginFor(@NotNull final Entity entity) {
-        if (!DynamicDisguiseBoundingBoxFeature.shouldApply() || !DisguiseRegistry.isDisguiseEntity(entity.getId())) {
+        if (!DynamicDisguiseBoundingBoxFeature.shouldApply()
+                || (!DisguiseRegistry.isDisguiseEntity(entity.getId()) && !DisguiseRegistry.isOwnedSquid(entity.getId()))) {
             return 0.0D;
         }
 

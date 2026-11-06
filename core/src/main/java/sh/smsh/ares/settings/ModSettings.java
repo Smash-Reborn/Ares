@@ -77,6 +77,14 @@ public final class ModSettings {
         config.setShowSelfDisguiseEntity(showSelfDisguiseEntity);
     }
 
+    public static boolean isSelfDisguiseOnCrack() {
+        return config.isSelfDisguiseOnCrack();
+    }
+
+    public static void setSelfDisguiseOnCrack(final boolean selfDisguiseOnCrack) {
+        config.setSelfDisguiseOnCrack(selfDisguiseOnCrack);
+    }
+
     public static boolean shouldForceNativeBoundingBoxes() {
         return config.isNativeBoundingBoxes();
     }
@@ -116,14 +124,6 @@ public final class ModSettings {
 
     public static void setLegacyDamageTilt(final boolean legacyDamageTilt) {
         config.setLegacyDamageTilt(legacyDamageTilt);
-    }
-
-    public static boolean isLegacyDamageSound() {
-        return config.isLegacyDamageSound();
-    }
-
-    public static void setLegacyDamageSound(final boolean legacyDamageSound) {
-        config.setLegacyDamageSound(legacyDamageSound);
     }
 
     public static boolean isDisableDamageIndicators() {

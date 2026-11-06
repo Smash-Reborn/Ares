@@ -5,7 +5,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import sh.smsh.ares.AresConstants;
 import sh.smsh.ares.AresLog;
-import sh.smsh.ares.fabric.combat.LegacyDamageFeedback;
 import sh.smsh.ares.fabric.command.AresClientCommands;
 import sh.smsh.ares.fabric.debug.SpawnPacketDebug;
 import sh.smsh.ares.fabric.disguise.DisguiseDetectionController;
@@ -25,7 +24,6 @@ public final class AresFabricClient implements ClientModInitializer {
             FeatureManager.onClientTick();
             DisguiseDetectionController.onClientTick();
             SpawnPacketDebug.flush();
-            LegacyDamageFeedback.captureHealth();
         });
         AresLog.LOGGER.info(AresConstants.MOD_NAME + " loaded.");
     }

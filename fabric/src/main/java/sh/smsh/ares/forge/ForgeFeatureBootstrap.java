@@ -12,7 +12,6 @@ import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.feature.impl.DynamicDisguiseBoundingBoxFeature;
 import sh.smsh.ares.feature.impl.ExtendedRenderDistanceFeature;
 import sh.smsh.ares.feature.impl.HighlightMeleeBoundingBoxFeature;
-import sh.smsh.ares.feature.impl.LegacyDamageSoundFeature;
 import sh.smsh.ares.feature.impl.LegacyDamageTiltFeature;
 import sh.smsh.ares.feature.impl.NativeBoundingBoxesFeature;
 import sh.smsh.ares.feature.impl.SelfDisguiseEntityFeature;
@@ -36,7 +35,6 @@ public final class ForgeFeatureBootstrap {
         FeatureManager.register(new HighlightMeleeBoundingBoxFeature());
         FeatureManager.register(new DynamicDisguiseBoundingBoxFeature());
         FeatureManager.register(new LegacyDamageTiltFeature());
-        FeatureManager.register(new LegacyDamageSoundFeature());
         FeatureManager.register(new DisableDamageIndicatorsFeature());
         FeatureManager.register(new DisableAmbientDisguiseSoundsFeature());
     }

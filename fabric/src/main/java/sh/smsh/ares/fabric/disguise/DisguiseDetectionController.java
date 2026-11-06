@@ -18,7 +18,6 @@ import sh.smsh.ares.disguise.DisguiseDetectionStrategy;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.disguise.DisguiseStrategies;
 import sh.smsh.ares.disguise.self.SelfHotbarItem;
-import sh.smsh.ares.feature.impl.DisableAmbientDisguiseSoundsFeature;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.util.TextFormattingUtil;
 
@@ -39,6 +38,11 @@ public final class DisguiseDetectionController {
         refreshSelfDisguise();
     }
 
+    public static void onEntitySpawned(final int entityId) {
+        DisguiseSquids.noteSpawn(entityId);
+        onEntityUpdated(entityId);
+    }
+
     public static void onEntityUpdated(final int entityId) {
         if (!DisguiseDetectionFeature.shouldApply()) {
             return;
@@ -50,9 +54,12 @@ public final class DisguiseDetectionController {
         }
 
         considerEntity(minecraft.level.getEntity(entityId));
+        DisguiseSquids.observe(minecraft.level.getEntity(entityId));
+        DisguiseSquids.tryClaim();
     }
 
     public static void onEntitiesRemoved(@NotNull final int[] entityIds) {
+        DisguiseSquids.forget(entityIds);
         for (final int entityId : entityIds) {
             final DisguiseBinding binding = DisguiseRegistry.getByEntityId(entityId);
             if (binding != null && !binding.isSelfInferred()) {
@@ -65,6 +72,7 @@ public final class DisguiseDetectionController {
         participatingPlayers = Set.of();
         lastSelfHeadKey = null;
         SelfDisguiseRenderController.clear();
+        DisguiseSquids.clear();
         DisguiseRegistry.clear();
     }
 
@@ -98,8 +106,6 @@ public final class DisguiseDetectionController {
             @NotNull final Entity mob,
             @NotNull final String playerName,
             @Nullable final String rawCustomName) {
-
-        mob.setSilent(DisableAmbientDisguiseSoundsFeature.shouldApply());
 
         final DisguiseBinding existing = DisguiseRegistry.getByPlayerName(playerName);
         if (existing != null && existing.getEntityId() != mob.getId() && disguiseStillValid(existing)) {
