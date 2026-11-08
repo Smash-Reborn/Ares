@@ -44,5 +44,5 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.jar {
-    archiveBaseName.set("AresMod")
+    archiveFileName.set("ares-II-${project.version}-fabric-${project.property("minecraft_version")}.jar")
 }

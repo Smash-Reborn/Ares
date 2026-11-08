@@ -19,6 +19,8 @@ public class ModSettingsConfig {
     private boolean legacyDamageTilt = true;
     private boolean disableDamageIndicators = false;
     private boolean disableAmbientDisguiseSounds = true;
+    private FireOverlaySettings fireOverlaySettings = new FireOverlaySettings();
+    private ParticleOpacitySettings particleOpacitySettings = new ParticleOpacitySettings();
 
     @Data
     @NoArgsConstructor
@@ -26,5 +28,22 @@ public class ModSettingsConfig {
 
         private boolean enabled = true;
         private float renderDistanceWeight = 12.0f;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class FireOverlaySettings {
+
+        private boolean enabled = false;
+        private float overlayHeightOffset = 0.0f;
+        private float overlayOpacity = 1.0f;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class ParticleOpacitySettings {
+
+        private boolean enabled = false;
+        private float particleOpacity = 1.0f;
     }
 }
