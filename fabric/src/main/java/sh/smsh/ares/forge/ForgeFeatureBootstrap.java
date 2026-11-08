@@ -11,9 +11,11 @@ import sh.smsh.ares.feature.impl.DisableDamageIndicatorsFeature;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 import sh.smsh.ares.feature.impl.DynamicDisguiseBoundingBoxFeature;
 import sh.smsh.ares.feature.impl.ExtendedRenderDistanceFeature;
+import sh.smsh.ares.feature.impl.FireOverlayFeature;
 import sh.smsh.ares.feature.impl.HighlightMeleeBoundingBoxFeature;
 import sh.smsh.ares.feature.impl.LegacyDamageTiltFeature;
 import sh.smsh.ares.feature.impl.NativeBoundingBoxesFeature;
+import sh.smsh.ares.feature.impl.ParticleOpacityFeature;
 import sh.smsh.ares.feature.impl.SelfDisguiseEntityFeature;
 import sh.smsh.ares.feature.FeatureManager;
 
@@ -37,6 +39,8 @@ public final class ForgeFeatureBootstrap {
         FeatureManager.register(new LegacyDamageTiltFeature());
         FeatureManager.register(new DisableDamageIndicatorsFeature());
         FeatureManager.register(new DisableAmbientDisguiseSoundsFeature());
+        FeatureManager.register(new FireOverlayFeature());
+        FeatureManager.register(new ParticleOpacityFeature());
     }
 
     public static void reloadWhitelist() {

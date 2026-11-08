@@ -7,8 +7,15 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.config.AresColor;
@@ -48,6 +55,8 @@ public final class AresConfigScreen extends Screen {
     private int scrollOffset;
     private boolean draggingScroll;
     @Nullable private String statusMessage;
+    @Nullable private PreviewKind previewKind;
+    private long previewUntil;
 
     public AresConfigScreen(@Nullable final Screen parent) {
         super(Component.literal("Ares Settings"));
@@ -105,7 +114,7 @@ public final class AresConfigScreen extends Screen {
         });
         addColorSwatch();
         addToggle("Dynamic Melee Bounding Box",
-                "Tools now provide a specialized item component which grows the hitbox_margin of a targets bounding box by 0.1, mimicing 1.8s clientside melee bounding box growth. If enabled, this feature makes the \"highlighting\" of the bounding box respect the new margin.",
+                "Tools now provide a specialized item component which grows the hitbox_margin of a targets bounding box by 0.1, mimicking 1.8s clientside melee bounding box growth. If enabled, this feature makes the \"highlighting\" of the bounding box respect the new margin.",
                 ModSettings.shouldDynamicallyScaleDisguiseBoundingBoxes(), () -> {
             ModSettings.setDynamicallyScaleDisguiseBoundingBoxes(!ModSettings.shouldDynamicallyScaleDisguiseBoundingBoxes());
             return ModSettings.shouldDynamicallyScaleDisguiseBoundingBoxes();
@@ -128,6 +137,45 @@ public final class AresConfigScreen extends Screen {
             ModSettings.setDisableAmbientDisguiseSounds(!ModSettings.isDisableAmbientDisguiseSounds());
             return ModSettings.isDisableAmbientDisguiseSounds();
         });
+        addToggle("Fire Overlay",
+                "When enabled, the first-person fire overlay uses the height and opacity sliders below. 0.00 height is the vanilla position, and 100% opacity is unchanged vanilla fire.",
+                ModSettings.isFireOverlayEnabled(), () -> {
+            ModSettings.setFireOverlayEnabled(!ModSettings.isFireOverlayEnabled());
+            return ModSettings.isFireOverlayEnabled();
+        });
+        addUnitSlider(
+                "Fire Height Offset",
+                "Lowers the fire overlay. 0.00 keeps it at the vanilla position. Higher values push the flames further down the screen.",
+                ModSettings.getFireOverlayHeightOffset(),
+                ModSettings.MIN_FIRE_OVERLAY_OFFSET,
+                ModSettings.MAX_FIRE_OVERLAY_OFFSET,
+                SliderText.OFFSET,
+                ModSettings::setFireOverlayHeightOffset,
+                PreviewKind.FIRE);
+        addUnitSlider(
+                "Fire Opacity",
+                "Opacity of the fire overlay. 100% is vanilla. Lower values make the flames more see-through, down to 1%.",
+                ModSettings.getFireOverlayOpacity(),
+                ModSettings.MIN_VISUAL_OPACITY,
+                ModSettings.MAX_VISUAL_OPACITY,
+                SliderText.PERCENT,
+                ModSettings::setFireOverlayOpacity,
+                PreviewKind.FIRE);
+        addToggle("Particle Opacity",
+                "When enabled, rendered particles use the opacity slider below. 100% is unchanged vanilla.",
+                ModSettings.isParticleOpacityEnabled(), () -> {
+            ModSettings.setParticleOpacityEnabled(!ModSettings.isParticleOpacityEnabled());
+            return ModSettings.isParticleOpacityEnabled();
+        });
+        addUnitSlider(
+                "Particle Opacity Level",
+                "Opacity applied to particles. 100% is vanilla. Lower values make them more see-through, down to 1%.",
+                ModSettings.getParticleOpacity(),
+                ModSettings.MIN_VISUAL_OPACITY,
+                ModSettings.MAX_VISUAL_OPACITY,
+                SliderText.PERCENT,
+                ModSettings::setParticleOpacity,
+                PreviewKind.PARTICLES);
 
         addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
                 .bounds(this.width / 2 - 100, getSettingsBottom() + 24, 200, CONTROL_HEIGHT)
@@ -183,6 +231,12 @@ public final class AresConfigScreen extends Screen {
 
         if (this.statusMessage != null) {
             graphics.centeredText(getFont(), this.statusMessage, this.width / 2, getSettingsBottom() + 10, COLOR_RED);
+        }
+
+        if (previewActive(PreviewKind.FIRE)) {
+            drawFirePreview(graphics);
+        } else if (previewActive(PreviewKind.PARTICLES)) {
+            drawParticlePreview(graphics);
         }
     }
 
@@ -269,6 +323,87 @@ public final class AresConfigScreen extends Screen {
         final WeightSlider slider = new WeightSlider(controlX(), 0, weight);
         addRenderableWidget(slider);
         this.rows.add(new SettingRow("Entity Render Weight", null, slider, 0, index));
+    }
+
+    private void addUnitSlider(
+            final String label,
+            @Nullable final String description,
+            final float value,
+            final float min,
+            final float max,
+            final SliderText text,
+            final FloatConsumer apply,
+            final PreviewKind preview) {
+        final int index = this.rows.size();
+        final UnitSlider slider = new UnitSlider(controlX(), 0, value, min, max, text, apply, preview);
+        addRenderableWidget(slider);
+        this.rows.add(new SettingRow(label, description, slider, 0, index));
+    }
+
+    private void showPreview(final PreviewKind kind, final boolean hold) {
+        if (!hold && this.previewKind == kind && this.previewUntil == Long.MAX_VALUE) {
+            return;
+        }
+        this.previewKind = kind;
+        this.previewUntil = hold ? Long.MAX_VALUE : System.currentTimeMillis() + 250L;
+    }
+
+    private void clearHeldPreview(final PreviewKind kind) {
+        if (this.previewKind == kind && this.previewUntil == Long.MAX_VALUE) {
+            this.previewKind = null;
+            this.previewUntil = 0L;
+        }
+    }
+
+    private boolean previewActive(final PreviewKind kind) {
+        return this.previewKind == kind
+                && (this.previewUntil == Long.MAX_VALUE || System.currentTimeMillis() < this.previewUntil);
+    }
+
+    private void drawFirePreview(final GuiGraphicsExtractor graphics) {
+        final TextureAtlasSprite primary = graphics.getSprite(ModelBakery.FIRE_1);
+        final TextureAtlasSprite secondary = graphics.getSprite(ModelBakery.FIRE_0);
+        if (primary == null || secondary == null) {
+            return;
+        }
+
+        final float span = Math.max(0.0001f, ModSettings.MAX_FIRE_OVERLAY_OFFSET - ModSettings.MIN_FIRE_OVERLAY_OFFSET);
+        final float lowered = (ModSettings.getFireOverlayHeightOffset() - ModSettings.MIN_FIRE_OVERLAY_OFFSET) / span;
+        final int alpha = Math.max(1, Math.round(0xE5 * ModSettings.getFireOverlayOpacity()));
+        final int color = ARGB.color(alpha, 255, 255, 255);
+        final int band = Math.max(64, this.height / 3);
+        final int y = this.height - band + Math.round(lowered * (band + 24));
+        final boolean swap = (System.currentTimeMillis() / 100L & 1L) == 0L;
+        for (int x = 0, tileIndex = 0; x < this.width; x += band, tileIndex++) {
+            final TextureAtlasSprite sprite = (tileIndex % 2 == 0) == swap ? primary : secondary;
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, band, band, color);
+        }
+    }
+
+    private void drawParticlePreview(final GuiGraphicsExtractor graphics) {
+        final int alpha = Math.max(1, Math.round(255f * ModSettings.getParticleOpacity()));
+        final int color = ARGB.color(alpha, 186, 92, 255);
+        final int centerX = this.width / 2;
+        final int centerY = this.height / 2;
+        final long time = System.currentTimeMillis();
+        final int count = 16;
+        for (int i = 0; i < count; i++) {
+            final int frame = (int) ((time / 70L + i * 3L) % 8L);
+            final TextureAtlasSprite sprite = graphics.getSprite(new SpriteId(
+                    Identifier.withDefaultNamespace("textures/atlas/particles.png"),
+                    Identifier.withDefaultNamespace("effect_" + frame)));
+            if (sprite == null) {
+                continue;
+            }
+
+            final double spin = time / 450.0 + i * (Math.PI * 2.0 / count);
+            final double rise = (time / 16.0 + i * 22.0) % 110.0;
+            final double radius = 26.0 + (i % 5) * 14.0;
+            final int size = 8 + (i % 4) * 5;
+            final int x = centerX + (int) (Math.cos(spin) * radius) - size / 2;
+            final int y = centerY + 36 - (int) rise + (int) (Math.sin(spin) * 18.0) - size / 2;
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, size, size, color);
+        }
     }
 
     private void addColorSwatch() {
@@ -502,6 +637,21 @@ public final class AresConfigScreen extends Screen {
         boolean toggle();
     }
 
+    @FunctionalInterface
+    private interface FloatConsumer {
+        void accept(float value);
+    }
+
+    private enum PreviewKind {
+        FIRE,
+        PARTICLES
+    }
+
+    private enum SliderText {
+        PERCENT,
+        OFFSET
+    }
+
     private record SettingRow(@NotNull String label, @Nullable String description, AbstractWidget widget, int yOffset, int index) {
     }
 
@@ -542,6 +692,80 @@ public final class AresConfigScreen extends Screen {
 
         private int currentWeight() {
             return MIN_RENDER_DISTANCE_WEIGHT + (int) Math.round(this.value * (MAX_RENDER_DISTANCE_WEIGHT - MIN_RENDER_DISTANCE_WEIGHT));
+        }
+    }
+
+    private final class UnitSlider extends AbstractSliderButton {
+
+        private final float min;
+        private final float max;
+        private final SliderText text;
+        private final FloatConsumer apply;
+        private final PreviewKind preview;
+
+        private UnitSlider(
+                final int x,
+                final int y,
+                final float value,
+                final float min,
+                final float max,
+                final SliderText text,
+                final FloatConsumer apply,
+                final PreviewKind preview) {
+            super(x, y, CONTROL_WIDTH, CONTROL_HEIGHT, Component.empty(), (value - min) / (double) (max - min));
+            this.min = min;
+            this.max = max;
+            this.text = text;
+            this.apply = apply;
+            this.preview = preview;
+            updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            final float current = currentValue();
+            final String label = this.text == SliderText.PERCENT
+                    ? Math.round(current * 100f) + "%"
+                    : String.format(Locale.ROOT, "%.2f", current);
+            setMessage(Component.literal(label));
+        }
+
+        @Override
+        protected void applyValue() {
+            this.apply.accept(currentValue());
+            showPreview(this.preview, false);
+        }
+
+        @Override
+        public void onClick(final MouseButtonEvent event, final boolean doubled) {
+            super.onClick(event, doubled);
+            showPreview(this.preview, true);
+        }
+
+        @Override
+        public void onRelease(final MouseButtonEvent event) {
+            super.onRelease(event);
+            clearHeldPreview(this.preview);
+        }
+
+        @Override
+        public boolean keyPressed(final KeyEvent event) {
+            final boolean handled = super.keyPressed(event);
+            if (handled && (event.isLeft() || event.isRight())) {
+                showPreview(this.preview, false);
+            }
+            return handled;
+        }
+
+        @Override
+        public boolean isMouseOver(final double mouseX, final double mouseY) {
+            return this.visible && inView(mouseY) && super.isMouseOver(mouseX, mouseY);
+        }
+
+        private float currentValue() {
+            final float raw = this.min + (float) this.value * (this.max - this.min);
+            final float snapped = Math.round(raw * 100f) / 100f;
+            return Math.max(this.min, Math.min(this.max, snapped));
         }
     }
 

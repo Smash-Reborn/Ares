@@ -13,5 +13,14 @@
   "dynamicallyScaleDisguiseBoundingBoxes": true,
   "legacyDamageTilt": true,
   "disableDamageIndicators": false,
-  "disableAmbientDisguiseSounds": true
+  "disableAmbientDisguiseSounds": true,
+  "fireOverlaySettings": {
+    "enabled": false,
+    "overlayHeightOffset": 0.0,
+    "overlayOpacity": 1.0
+  },
+  "particleOpacitySettings": {
+    "enabled": false,
+    "particleOpacity": 1.0
+  }
 }
