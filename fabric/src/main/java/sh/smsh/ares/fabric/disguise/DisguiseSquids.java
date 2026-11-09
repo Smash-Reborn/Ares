@@ -5,27 +5,24 @@ import lombok.NoArgsConstructor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.disguise.DisguiseBinding;
 import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * An invisible squid spawned after a disguise and teleported above it is that disguise's hitbox.
+ * An invisible squid spawned after a disguise and teleported to that disguise's passenger height is that disguise's hitbox.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisguiseSquids {
 
     private static final double XZ_RANGE = 1.0D;
-    private static final double Y_RANGE = 2.0D;
+    private static final double Y_LENIENCY_MIN = -2.0D;
+    private static final double Y_LENIENCY_MAX = 2.0D;
 
     private static final Map<Integer, Long> spawnOrder = new HashMap<>();
     private static final Set<Integer> unclaimedSquids = new HashSet<>();
@@ -77,7 +74,7 @@ public final class DisguiseSquids {
             }
         }
 
-        claims.sort((left, right) -> Double.compare(left.distanceSqr(), right.distanceSqr()));
+        claims.sort(Comparator.comparingDouble(Claim::distanceSqr));
         final Set<Integer> usedDisguises = new HashSet<>();
         final Set<Integer> claimedSquids = new HashSet<>();
         for (final Claim claim : claims) {
@@ -93,7 +90,7 @@ public final class DisguiseSquids {
         }
     }
 
-    public static void forget(@NotNull final int[] entityIds) {
+    public static void forget(final int[] entityIds) {
         for (final int entityId : entityIds) {
             spawnOrder.remove(entityId);
             unclaimedSquids.remove(entityId);
@@ -131,9 +128,9 @@ public final class DisguiseSquids {
             }
 
             final double dx = squid.getX() - disguise.getX();
-            final double dy = squid.getY() - disguise.getY();
+            final double dy = squid.getY() - expectedPassengerY(disguise, squid);
             final double dz = squid.getZ() - disguise.getZ();
-            if ((dx * dx) + (dz * dz) > XZ_RANGE * XZ_RANGE || Math.abs(dy) > Y_RANGE) {
+            if ((dx * dx) + (dz * dz) > XZ_RANGE * XZ_RANGE || dy < Y_LENIENCY_MIN || dy > Y_LENIENCY_MAX) {
                 continue;
             }
 
@@ -146,6 +143,15 @@ public final class DisguiseSquids {
         return best;
     }
 
-    private record Claim(int disguiseEntityId, int squidEntityId, double distanceSqr) {
+    /**
+     * Feet height vanilla uses when placing a passenger, which is where the hitbox squid is teleported.
+     * The seat comes from the disguise; the squid's own vehicle attachment is then subtracted, matching {@code positionRider}.
+     */
+    private static double expectedPassengerY(@NotNull final Entity disguise, @NotNull final Entity squid) {
+        final Vec3 seat = disguise.getPassengerRidingPosition(squid);
+        final Vec3 attachment = squid.getVehicleAttachmentPoint(disguise);
+        return seat.y - attachment.y;
     }
+
+    private record Claim(int disguiseEntityId, int squidEntityId, double distanceSqr) { }
 }

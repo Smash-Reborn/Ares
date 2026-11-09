@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sh.smsh.ares.AresLog;
 import sh.smsh.ares.config.AresColor;
 import sh.smsh.ares.config.ModSettingsConfig;
@@ -187,6 +188,95 @@ public final class ModSettings {
         particleOpacity().setParticleOpacity(clampVisualOpacity(particleOpacity));
     }
 
+    public static boolean isDisguiseGlowEnabled() {
+        return disguiseGlow().isEnabled();
+    }
+
+    public static void setDisguiseGlowEnabled(final boolean enabled) {
+        disguiseGlow().setEnabled(enabled);
+    }
+
+    @NotNull
+    public static ModSettingsConfig.DisguiseGlowSettings.DisguiseGlowToggleType getDisguiseGlowToggleType() {
+        return disguiseGlow().getGlowToggleType();
+    }
+
+    public static void setDisguiseGlowToggleType(
+            @NotNull final ModSettingsConfig.DisguiseGlowSettings.DisguiseGlowToggleType glowToggleType) {
+        disguiseGlow().setGlowToggleType(glowToggleType);
+    }
+
+    public static void cycleDisguiseGlowToggleType() {
+        disguiseGlow().setGlowToggleType(getDisguiseGlowToggleType().next());
+    }
+
+    public static boolean useCustomDisguiseStockColors() {
+        return disguiseGlow().isUseCustomStockColors();
+    }
+
+    public static void setUseCustomDisguiseStockColors(final boolean useCustomStockColors) {
+        disguiseGlow().setUseCustomStockColors(useCustomStockColors);
+    }
+
+    @NotNull
+    public static AresColor getDisguiseGlowFourStocksColor() {
+        return disguiseGlow().getFourStocksAndAbove();
+    }
+
+    public static void setDisguiseGlowFourStocksColor(@NotNull final AresColor color) {
+        disguiseGlow().setFourStocksAndAbove(color);
+    }
+
+    @NotNull
+    public static AresColor getDisguiseGlowThreeStocksColor() {
+        return disguiseGlow().getThreeStocks();
+    }
+
+    public static void setDisguiseGlowThreeStocksColor(@NotNull final AresColor color) {
+        disguiseGlow().setThreeStocks(color);
+    }
+
+    @NotNull
+    public static AresColor getDisguiseGlowTwoStocksColor() {
+        return disguiseGlow().getTwoStocks();
+    }
+
+    public static void setDisguiseGlowTwoStocksColor(@NotNull final AresColor color) {
+        disguiseGlow().setTwoStocks(color);
+    }
+
+    @NotNull
+    public static AresColor getDisguiseGlowOneStockColor() {
+        return disguiseGlow().getOneStock();
+    }
+
+    public static void setDisguiseGlowOneStockColor(@NotNull final AresColor color) {
+        disguiseGlow().setOneStock(color);
+    }
+
+    @NotNull
+    public static AresColor getDisguiseGlowFallbackColor() {
+        return disguiseGlow().getDefaultFallback();
+    }
+
+    public static void setDisguiseGlowFallbackColor(@NotNull final AresColor color) {
+        disguiseGlow().setDefaultFallback(color);
+    }
+
+    @NotNull
+    public static AresColor getDisguiseGlowColor(@Nullable final Integer stocks) {
+        return disguiseGlow().colorForStock(stocks);
+    }
+
+    public static int getDisguiseGlowToggleKeyCode() {
+        final int code = disguiseGlow().getToggleKeyCode();
+        return code > 0 ? code : -1;
+    }
+
+    public static void setDisguiseGlowToggleKeyCode(final int toggleKeyCode) {
+        disguiseGlow().setToggleKeyCode(toggleKeyCode > 0 ? toggleKeyCode : -1);
+    }
+
     public static boolean saveConfig() {
         if (loader == null) {
             return false;
@@ -225,6 +315,34 @@ public final class ModSettings {
         if (settings == null) {
             settings = new ModSettingsConfig.ParticleOpacitySettings();
             config.setParticleOpacitySettings(settings);
+        }
+        return settings;
+    }
+
+    @NotNull
+    private static ModSettingsConfig.DisguiseGlowSettings disguiseGlow() {
+        ModSettingsConfig.DisguiseGlowSettings settings = config.getDisguiseGlowSettings();
+        if (settings == null) {
+            settings = new ModSettingsConfig.DisguiseGlowSettings();
+            config.setDisguiseGlowSettings(settings);
+        }
+        if (settings.getGlowToggleType() == null) {
+            settings.setGlowToggleType(ModSettingsConfig.DisguiseGlowSettings.DisguiseGlowToggleType.PERMANENTLY_ACTIVE);
+        }
+        if (settings.getFourStocksAndAbove() == null) {
+            settings.setFourStocksAndAbove(AresColor.GREEN);
+        }
+        if (settings.getThreeStocks() == null) {
+            settings.setThreeStocks(AresColor.YELLOW);
+        }
+        if (settings.getTwoStocks() == null) {
+            settings.setTwoStocks(AresColor.GOLD);
+        }
+        if (settings.getOneStock() == null) {
+            settings.setOneStock(AresColor.RED);
+        }
+        if (settings.getDefaultFallback() == null) {
+            settings.setDefaultFallback(AresColor.WHITE);
         }
         return settings;
     }

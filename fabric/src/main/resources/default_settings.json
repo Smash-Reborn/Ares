@@ -22,5 +22,16 @@
   "particleOpacitySettings": {
     "enabled": false,
     "particleOpacity": 1.0
+  },
+  "disguiseGlowSettings": {
+    "enabled": false,
+    "glowToggleType": "PERMANENTLY_ACTIVE",
+    "useCustomStockColors": false,
+    "fourStocksAndAbove": "GREEN",
+    "threeStocks": "YELLOW",
+    "twoStocks": "GOLD",
+    "oneStock": "RED",
+    "defaultFallback": "WHITE",
+    "toggleKeyCode": -1
   }
 }

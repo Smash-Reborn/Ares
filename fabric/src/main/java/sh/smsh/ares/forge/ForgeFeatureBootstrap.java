@@ -9,6 +9,7 @@ import sh.smsh.ares.feature.impl.ArrowBouncingDisableAnimationFeature;
 import sh.smsh.ares.feature.impl.DisableAmbientDisguiseSoundsFeature;
 import sh.smsh.ares.feature.impl.DisableDamageIndicatorsFeature;
 import sh.smsh.ares.feature.impl.DisguiseDetectionFeature;
+import sh.smsh.ares.feature.impl.DisguiseGlowFeature;
 import sh.smsh.ares.feature.impl.DynamicDisguiseBoundingBoxFeature;
 import sh.smsh.ares.feature.impl.ExtendedRenderDistanceFeature;
 import sh.smsh.ares.feature.impl.FireOverlayFeature;
@@ -32,6 +33,7 @@ public final class ForgeFeatureBootstrap {
         FeatureManager.register(new ArrowBouncingDisableAnimationFeature());
         FeatureManager.register(new ExtendedRenderDistanceFeature());
         FeatureManager.register(new DisguiseDetectionFeature());
+        FeatureManager.register(new DisguiseGlowFeature());
         FeatureManager.register(new SelfDisguiseEntityFeature());
         FeatureManager.register(new NativeBoundingBoxesFeature());
         FeatureManager.register(new HighlightMeleeBoundingBoxFeature());

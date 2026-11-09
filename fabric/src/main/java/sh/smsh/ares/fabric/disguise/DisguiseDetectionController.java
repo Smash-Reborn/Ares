@@ -36,6 +36,7 @@ public final class DisguiseDetectionController {
     public static void onClientTick() {
         refreshParticipatingPlayers();
         refreshSelfDisguise();
+        DisguiseGlowController.refresh();
     }
 
     public static void onEntitySpawned(final int entityId) {
@@ -73,6 +74,7 @@ public final class DisguiseDetectionController {
         lastSelfHeadKey = null;
         SelfDisguiseRenderController.clear();
         DisguiseSquids.clear();
+        DisguiseGlowController.clear();
         DisguiseRegistry.clear();
     }
 

@@ -1,5 +1,6 @@
 package sh.smsh.ares.fabric.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -52,6 +53,8 @@ public final class AresConfigScreen extends Screen {
     @Nullable private final Screen parent;
     private final List<SettingRow> rows = new ArrayList<>();
     @Nullable private ColorSwatch openSwatch;
+    @Nullable private StatusButton glowKeyButton;
+    private boolean listeningForGlowKey;
     private int scrollOffset;
     private boolean draggingScroll;
     @Nullable private String statusMessage;
@@ -66,6 +69,8 @@ public final class AresConfigScreen extends Screen {
     @Override
     protected void init() {
         this.openSwatch = null;
+        this.listeningForGlowKey = false;
+        this.glowKeyButton = null;
         this.rows.clear();
 
         addToggle("Extended Entity Render",
@@ -112,7 +117,11 @@ public final class AresConfigScreen extends Screen {
             ModSettings.setHighlightMeleeBoundingBox(!ModSettings.shouldHighlightMeleeBoundingBox());
             return ModSettings.shouldHighlightMeleeBoundingBox();
         });
-        addColorSwatch();
+        addColorSwatch(
+                "Highlight color",
+                null,
+                ModSettings.getHighlightMeleeBoundingBoxColor(),
+                ModSettings::setHighlightMeleeBoundingBoxColor);
         addToggle("Dynamic Melee Bounding Box",
                 "Tools now provide a specialized item component which grows the hitbox_margin of a targets bounding box by 0.1, mimicking 1.8s clientside melee bounding box growth. If enabled, this feature makes the \"highlighting\" of the bounding box respect the new margin.",
                 ModSettings.shouldDynamicallyScaleDisguiseBoundingBoxes(), () -> {
@@ -176,6 +185,45 @@ public final class AresConfigScreen extends Screen {
                 SliderText.PERCENT,
                 ModSettings::setParticleOpacity,
                 PreviewKind.PARTICLES);
+        addToggle("Disguise Glow",
+                "When enabled, valid visible disguises glow. With stock colors off, every disguise uses the fallback color. A glow sent by the server, such as a hit that forces a disguise white, replaces the mod glow until the server glow ends.",
+                ModSettings.isDisguiseGlowEnabled(), () -> {
+            ModSettings.setDisguiseGlowEnabled(!ModSettings.isDisguiseGlowEnabled());
+            return ModSettings.isDisguiseGlowEnabled();
+        });
+        addGlowMode();
+        addGlowKey();
+        addToggle("Stock Colors",
+                "When enabled, the sidebar stock count picks the glow color. 4 or more uses the 4-stock color, and 3, 2, and 1 use their own colors. A missing or invalid count uses the fallback color. A leading team square on teams-mode lines is ignored.",
+                ModSettings.useCustomDisguiseStockColors(), () -> {
+            ModSettings.setUseCustomDisguiseStockColors(!ModSettings.useCustomDisguiseStockColors());
+            return ModSettings.useCustomDisguiseStockColors();
+        });
+        addColorSwatch(
+                "4+ Stock Color",
+                "Glow color for a disguise at 4 stocks, and for any custom count above 4.",
+                ModSettings.getDisguiseGlowFourStocksColor(),
+                ModSettings::setDisguiseGlowFourStocksColor);
+        addColorSwatch(
+                "3 Stock Color",
+                "Glow color for a disguise at 3 stocks.",
+                ModSettings.getDisguiseGlowThreeStocksColor(),
+                ModSettings::setDisguiseGlowThreeStocksColor);
+        addColorSwatch(
+                "2 Stock Color",
+                "Glow color for a disguise at 2 stocks.",
+                ModSettings.getDisguiseGlowTwoStocksColor(),
+                ModSettings::setDisguiseGlowTwoStocksColor);
+        addColorSwatch(
+                "1 Stock Color",
+                "Glow color for a disguise at 1 stock.",
+                ModSettings.getDisguiseGlowOneStockColor(),
+                ModSettings::setDisguiseGlowOneStockColor);
+        addColorSwatch(
+                "Fallback Glow Color",
+                "Glow color when stock colors are off, and when a disguise has no valid stock count.",
+                ModSettings.getDisguiseGlowFallbackColor(),
+                ModSettings::setDisguiseGlowFallbackColor);
 
         addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
                 .bounds(this.width / 2 - 100, getSettingsBottom() + 24, 200, CONTROL_HEIGHT)
@@ -245,8 +293,7 @@ public final class AresConfigScreen extends Screen {
         if (this.openSwatch != null) {
             final AresColor picked = colorAt(event.x(), event.y());
             if (picked != null) {
-                ModSettings.setHighlightMeleeBoundingBoxColor(picked);
-                this.openSwatch.color = picked;
+                this.openSwatch.setColor(picked);
                 this.openSwatch = null;
                 return true;
             }
@@ -294,6 +341,15 @@ public final class AresConfigScreen extends Screen {
         }
 
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(final KeyEvent event) {
+        if (this.listeningForGlowKey) {
+            captureGlowKey(event);
+            return true;
+        }
+        return super.keyPressed(event);
     }
 
     @Override
@@ -406,14 +462,74 @@ public final class AresConfigScreen extends Screen {
         }
     }
 
-    private void addColorSwatch() {
+    private void addGlowMode() {
         final int index = this.rows.size();
-        final ColorSwatch swatch = new ColorSwatch(
-                controlX() + CONTROL_WIDTH - SWATCH_SIZE,
+        final StatusButton button = new StatusButton(controlX(), 0, glowModeMessage(), pressed -> {
+            ModSettings.cycleDisguiseGlowToggleType();
+            pressed.setMessage(glowModeMessage());
+        });
+        addRenderableWidget(button);
+        this.rows.add(new SettingRow(
+                "Glow Mode",
+                "Permanently Active always glows valid disguises. Holding Compass glows only while you hold a compass named TRACKING COMPASS. Compass Click and Keybind toggle that glow on and off.",
+                button,
                 0,
-                ModSettings.getHighlightMeleeBoundingBoxColor());
+                index));
+    }
+
+    private void addGlowKey() {
+        final int index = this.rows.size();
+        this.glowKeyButton = new StatusButton(controlX(), 0, glowKeyMessage(), pressed -> {
+            this.listeningForGlowKey = !this.listeningForGlowKey;
+            pressed.setMessage(glowKeyMessage());
+        });
+        addRenderableWidget(this.glowKeyButton);
+        this.rows.add(new SettingRow(
+                "Glow Toggle Key",
+                "Click, then press a keyboard key to bind the keybind glow toggle. Press Escape to cancel. Click the button again to stop listening.",
+                this.glowKeyButton,
+                0,
+                index));
+    }
+
+    private void captureGlowKey(final KeyEvent event) {
+        final InputConstants.Key key = InputConstants.getKey(event);
+        if (key.getType() != InputConstants.Type.KEYBOARD) {
+            return;
+        }
+        if (key.getValue() != InputConstants.KEY_ESCAPE) {
+            ModSettings.setDisguiseGlowToggleKeyCode(key.getValue());
+        }
+        this.listeningForGlowKey = false;
+        if (this.glowKeyButton != null) {
+            this.glowKeyButton.setMessage(glowKeyMessage());
+        }
+    }
+
+    private Component glowModeMessage() {
+        return Component.literal(ModSettings.getDisguiseGlowToggleType().getLabel()).withStyle(ChatFormatting.GOLD);
+    }
+
+    private Component glowKeyMessage() {
+        if (this.listeningForGlowKey) {
+            return Component.literal("Press a key...").withStyle(ChatFormatting.GOLD);
+        }
+        final int code = ModSettings.getDisguiseGlowToggleKeyCode();
+        if (code <= 0) {
+            return Component.literal("Unbound").withStyle(ChatFormatting.RED);
+        }
+        return InputConstants.Type.KEYBOARD.getOrCreate(code).getDisplayName().copy().withStyle(ChatFormatting.GREEN);
+    }
+
+    private void addColorSwatch(
+            final String label,
+            @Nullable final String description,
+            final AresColor color,
+            final ColorConsumer apply) {
+        final int index = this.rows.size();
+        final ColorSwatch swatch = new ColorSwatch(controlX() + CONTROL_WIDTH - SWATCH_SIZE, 0, color, apply);
         addRenderableWidget(swatch);
-        this.rows.add(new SettingRow("Highlight color", null, swatch, 1, index));
+        this.rows.add(new SettingRow(label, description, swatch, 1, index));
     }
 
     private void applyScroll() {
@@ -642,6 +758,11 @@ public final class AresConfigScreen extends Screen {
         void accept(float value);
     }
 
+    @FunctionalInterface
+    private interface ColorConsumer {
+        void accept(AresColor color);
+    }
+
     private enum PreviewKind {
         FIRE,
         PARTICLES
@@ -772,10 +893,17 @@ public final class AresConfigScreen extends Screen {
     private final class ColorSwatch extends AbstractWidget {
 
         private AresColor color;
+        private final ColorConsumer apply;
 
-        private ColorSwatch(final int x, final int y, final AresColor color) {
+        private ColorSwatch(final int x, final int y, final AresColor color, final ColorConsumer apply) {
             super(x, y, SWATCH_SIZE, SWATCH_SIZE, Component.empty());
             this.color = color;
+            this.apply = apply;
+        }
+
+        private void setColor(final AresColor color) {
+            this.color = color;
+            this.apply.accept(color);
         }
 
         @Override
