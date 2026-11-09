@@ -20,6 +20,7 @@ public abstract class MixinEntity {
     /**
      * Mod outlines only apply while the server glowing flag is clear.
      * A server outline, such as a hit that forces a disguise white, keeps that glow until the flag drops.
+     * Only the mod outline is depth-tested. This flag still opts the entity into glowing.
      */
     @Inject(method = "isCurrentlyGlowing", at = @At("HEAD"), cancellable = true)
     private void ares$disguiseGlow(final CallbackInfoReturnable<Boolean> cir) {

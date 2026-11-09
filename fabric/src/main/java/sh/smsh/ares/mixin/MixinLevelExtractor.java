@@ -8,10 +8,20 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import sh.smsh.ares.fabric.disguise.DisguiseGlowOcclusion;
 import sh.smsh.ares.fabric.disguise.SelfDisguiseRenderController;
 
 @Mixin(LevelExtractor.class)
 public abstract class MixinLevelExtractor {
+
+    @Inject(method = "extract", at = @At("HEAD"))
+    private void ares$clearDisguiseGlowMarks(
+            final DeltaTracker deltaTracker,
+            final Camera camera,
+            final float partialTick,
+            final CallbackInfo ci) {
+        DisguiseGlowOcclusion.clearMarks();
+    }
 
     @Inject(method = "extractPlayerState", at = @At("HEAD"))
     private void ares$resetPreservePlayerState(

@@ -18,6 +18,7 @@ import sh.smsh.ares.disguise.DisguiseRegistry;
 import sh.smsh.ares.disguise.SidebarStocks;
 import sh.smsh.ares.feature.impl.DisguiseGlowFeature;
 import sh.smsh.ares.settings.ModSettings;
+import sh.smsh.ares.mixin.MixinEntityFlags;
 import sh.smsh.ares.util.TextFormattingUtil;
 
 import java.util.HashMap;
@@ -77,6 +78,12 @@ public final class DisguiseGlowController {
         glowLatched = false;
         keyWasDown = false;
         useWasDown = false;
+        DisguiseGlowOcclusion.clearMarks();
+    }
+
+    /** Mod disguise glow that should be occluded. Server glow keeps the vanilla outline. */
+    public static boolean occludesGlow(@NotNull final Entity entity) {
+        return glowRgb(entity) != null && !((MixinEntityFlags) entity).ares$getSharedFlag(6);
     }
 
     /**
