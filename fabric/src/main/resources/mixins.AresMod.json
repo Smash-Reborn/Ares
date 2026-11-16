@@ -5,6 +5,8 @@
   "mixins": [],
   "client": [
     "MixinAbstractArrow",
+    "MixinBlockModelFeatureRenderer",
+    "MixinBlockModelOutlineSubmit",
     "MixinClientPacketListener",
     "MixinDebugScreenEntryList",
     "MixinEntity",
@@ -24,7 +26,8 @@
     "MixinRenderType",
     "MixinRenderTypeAccess",
     "MixinScreenEffectRenderer",
-    "MixinSoundEngine"
+    "MixinSoundEngine",
+    "MixinSubmitNodeCollection"
   ],
   "server": [],
   "injectors": {
