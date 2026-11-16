@@ -1,6 +1,5 @@
 package sh.smsh.ares.fabric.disguise;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.renderpearl.api.pipeline.CompareOp;
 import com.mojang.renderpearl.api.pipeline.DepthStencilState;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
@@ -13,10 +12,9 @@ import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
 import sh.smsh.ares.AresConstants;
 import sh.smsh.ares.mixin.MixinRenderSetupAccess;
 import sh.smsh.ares.mixin.MixinRenderTypeAccess;
@@ -42,42 +40,21 @@ public final class DisguiseGlowOcclusion {
      */
     private static final DepthStencilState DEPTH = new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false);
     private static final String SAMPLER = "Sampler0";
-    /**
-     * Mooshroom back mushrooms are full-block cross planes. At full size their near
-     * edge sits on the camera side of a wall that already covers the cow. Shrink the
-     * outline around the block center so that edge stays with the body.
-     */
-    private static final float BLOCK_OUTLINE_SCALE = 0.55f;
-    /** View-ray push, in blocks, applied by the block-outline vertex shader. */
-    private static final float BLOCK_OUTLINE_PUSH = 0.32f;
-    private static final Matrix4fc BLOCK_INSET = new Matrix4f()
-            .translate(0.5f, 0.5f, 0.5f)
-            .scale(BLOCK_OUTLINE_SCALE)
-            .translate(-0.5f, -0.5f, -0.5f);
-    private static final Identifier BLOCK_OUTLINE_SHADER = Identifier.fromNamespaceAndPath(
-            AresConstants.MOD_ID, "core/disguise_block_outline");
 
     private static final Set<EntityRenderState> MARKED = Collections.newSetFromMap(new IdentityHashMap<>());
     private static final Set<Object> ITEMS = Collections.newSetFromMap(new IdentityHashMap<>());
-    private static final Set<Object> BLOCK_MODELS = Collections.newSetFromMap(new IdentityHashMap<>());
     private static final Set<RenderType> OURS = Collections.newSetFromMap(new IdentityHashMap<>());
-    private static final Set<RenderType> BLOCK_OUTLINE_TYPES = Collections.newSetFromMap(new IdentityHashMap<>());
-    private static final Set<RenderType> BLOCK_SOLID_TYPES = Collections.newSetFromMap(new IdentityHashMap<>());
     private static final ArrayDeque<Boolean> CAPTURE = new ArrayDeque<>();
     private static final Map<OutlineKey, RenderType> OUTLINES = new Object2ObjectOpenHashMap<>();
-    private static final Map<Identifier, RenderType> BLOCK_OUTLINES = new Object2ObjectOpenHashMap<>();
-    private static final Map<RenderType, RenderType> BLOCK_SOLIDS = new IdentityHashMap<>();
 
     private static Method textureLocation;
     private static RenderPipeline occludedCull;
     private static RenderPipeline occludedNoCull;
-    private static RenderPipeline blockOutlinePipeline;
-    private static int blockSolidSerial;
+    private static RenderType blockSpriteOutline;
 
     public static void clearMarks() {
         MARKED.clear();
         ITEMS.clear();
-        BLOCK_MODELS.clear();
         CAPTURE.clear();
     }
 
@@ -88,18 +65,6 @@ public final class DisguiseGlowOcclusion {
 
     public static boolean isItem(final Object submit) {
         return ITEMS.contains(submit);
-    }
-
-    /**
-     * Block-model submits created while a disguise is being submitted.
-     * Mooshroom mushrooms and carried blocks keep a vanilla outline unless these are swapped later.
-     */
-    public static void markBlockModel(final Object submit) {
-        BLOCK_MODELS.add(submit);
-    }
-
-    public static boolean isBlockModel(final Object submit) {
-        return BLOCK_MODELS.contains(submit);
     }
 
     public static void mark(final EntityRenderState state) {
@@ -151,42 +116,21 @@ public final class DisguiseGlowOcclusion {
     }
 
     /**
-     * Block-sprite outline used for mooshroom mushrooms and carried blocks.
-     * No view offset, both sides of a cross, and a view-ray push so the glow
-     * stays behind a wall that covers the body.
+     * Mooshroom mushrooms and carried blocks are drawn with the blocks atlas.
+     * This is the same depth-tested outline pipeline as the cow body, so a wall
+     * that hides the body also hides these sprites.
      */
-    @Nullable
-    public static RenderType blockOutlineFor(final RenderType source) {
-        if (source != null && BLOCK_OUTLINE_TYPES.contains(source)) {
-            return source;
+    public static RenderType blockSpriteOutline() {
+        if (blockSpriteOutline == null) {
+            final RenderSetup setup = RenderSetup.builder(occludedNoCull())
+                    .withTexture(SAMPLER, TextureAtlas.LOCATION_BLOCKS)
+                    .setOutline(RenderSetup.OutlineProperty.IS_OUTLINE)
+                    .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                    .createRenderSetup();
+            blockSpriteOutline = MixinRenderTypeAccess.ares$create("disguise_outline/blocks", setup);
+            OURS.add(blockSpriteOutline);
         }
-        final Identifier texture = textureOf(source);
-        if (texture == null) {
-            return null;
-        }
-        return BLOCK_OUTLINES.computeIfAbsent(texture, DisguiseGlowOcclusion::createBlockOutline);
-    }
-
-    /**
-     * Same cutout as the block sprite, but it does not write depth. The outline is
-     * pushed behind that sprite, and the sprite's own depth would otherwise erase it.
-     */
-    public static RenderType blockSolidFor(final RenderType source) {
-        if (source == null || BLOCK_SOLID_TYPES.contains(source)) {
-            return source;
-        }
-        final Identifier texture = textureOf(source);
-        if (texture == null) {
-            return source;
-        }
-        return BLOCK_SOLIDS.computeIfAbsent(source, type -> createBlockSolid(type, texture));
-    }
-
-    /** Shrink a block outline around the block center. The solid sprite keeps its pose. */
-    public static PoseStack.Pose insetBlockOutline(final PoseStack.Pose pose) {
-        final PoseStack.Pose copy = pose.copy();
-        copy.mulPose(BLOCK_INSET);
-        return copy;
+        return blockSpriteOutline;
     }
 
     private static RenderType createOutline(final OutlineKey key) {
@@ -200,48 +144,6 @@ public final class DisguiseGlowOcclusion {
         final RenderType type = MixinRenderTypeAccess.ares$create(name, setup);
         OURS.add(type);
         return type;
-    }
-
-    private static RenderType createBlockOutline(final Identifier texture) {
-        final RenderSetup setup = RenderSetup.builder(blockOutlinePipeline())
-                .withTexture(SAMPLER, texture)
-                .setOutline(RenderSetup.OutlineProperty.IS_OUTLINE)
-                .setLayeringTransform(LayeringTransform.NO_LAYERING)
-                .createRenderSetup();
-        final RenderType type = MixinRenderTypeAccess.ares$create(
-                "disguise_block_outline/" + texture.getPath(), setup);
-        OURS.add(type);
-        BLOCK_OUTLINE_TYPES.add(type);
-        return type;
-    }
-
-    private static RenderType createBlockSolid(final RenderType source, final Identifier texture) {
-        final RenderPipeline pipeline = copy(
-                setup(source).ares$pipeline(),
-                "pipeline/disguise_block_solid/" + blockSolidSerial++);
-        final RenderSetup setup = RenderSetup.builder(pipeline)
-                .withTexture(SAMPLER, texture)
-                .useLightmap()
-                .useOverlay()
-                .affectsCrumbling()
-                .setOutline(RenderSetup.OutlineProperty.NONE)
-                .createRenderSetup();
-        final RenderType type = MixinRenderTypeAccess.ares$create(
-                "disguise_block_solid/" + texture.getPath() + "/" + BLOCK_SOLID_TYPES.size(), setup);
-        BLOCK_SOLID_TYPES.add(type);
-        return type;
-    }
-
-    @Nullable
-    private static Identifier textureOf(final RenderType source) {
-        if (source == null) {
-            return null;
-        }
-        return texture(setup(source));
-    }
-
-    private static MixinRenderSetupAccess setup(final RenderType source) {
-        return (MixinRenderSetupAccess) (Object) ((MixinRenderTypeAccess) (Object) source).ares$state();
     }
 
     @Nullable
@@ -279,18 +181,6 @@ public final class DisguiseGlowOcclusion {
             occludedNoCull = copy(RenderPipelines.OUTLINE_NO_CULL, "pipeline/disguise_outline_no_cull");
         }
         return occludedNoCull;
-    }
-
-    private static RenderPipeline blockOutlinePipeline() {
-        if (blockOutlinePipeline == null) {
-            final RenderPipeline.Builder builder = builderFrom(
-                    RenderPipelines.OUTLINE_NO_CULL,
-                    Identifier.fromNamespaceAndPath(AresConstants.MOD_ID, "pipeline/disguise_block_outline"));
-            builder.withVertexShader(BLOCK_OUTLINE_SHADER);
-            builder.withShaderDefine("DISGUISE_BLOCK_PUSH", BLOCK_OUTLINE_PUSH);
-            blockOutlinePipeline = builder.build();
-        }
-        return blockOutlinePipeline;
     }
 
     private static RenderPipeline copy(final RenderPipeline source, final String path) {

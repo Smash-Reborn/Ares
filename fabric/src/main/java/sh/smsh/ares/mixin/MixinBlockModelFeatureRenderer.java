@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import sh.smsh.ares.fabric.disguise.DisguiseGlowOcclusion;
 
 /**
- * Disguise block sprites (mooshroom mushrooms) are drawn from the outline type
- * stored on the submit. Swap that type for the depth-tested outline at draw time.
+ * Mooshroom mushrooms and carried blocks are outline submits in this renderer.
+ * While a disguise is glowing, draw those outlines with the cow's depth-tested pipeline.
  */
 @Mixin(BlockModelFeatureRenderer.class)
 public abstract class MixinBlockModelFeatureRenderer {
@@ -21,13 +21,9 @@ public abstract class MixinBlockModelFeatureRenderer {
                     target = "Lnet/minecraft/client/renderer/feature/BlockModelFeatureRenderer$Submit;renderType()Lnet/minecraft/client/renderer/rendertype/RenderType;"))
     private RenderType ares$occludedBlockOutline(final BlockModelFeatureRenderer.Submit submit) {
         final RenderType type = submit.renderType();
-        if (!DisguiseGlowOcclusion.isBlockModel(submit)) {
-            return type;
+        if (type.isOutline() && DisguiseGlowOcclusion.hasMarks()) {
+            return DisguiseGlowOcclusion.blockSpriteOutline();
         }
-        if (type.isOutline()) {
-            final RenderType occluded = DisguiseGlowOcclusion.blockOutlineFor(type);
-            return occluded != null ? occluded : type;
-        }
-        return DisguiseGlowOcclusion.blockSolidFor(type);
+        return type;
     }
 }
