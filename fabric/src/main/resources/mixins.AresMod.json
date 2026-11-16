@@ -5,6 +5,7 @@
   "mixins": [],
   "client": [
     "MixinAbstractArrow",
+    "MixinBlockModelFeatureRenderer",
     "MixinClientPacketListener",
     "MixinDebugScreenEntryList",
     "MixinEntity",
