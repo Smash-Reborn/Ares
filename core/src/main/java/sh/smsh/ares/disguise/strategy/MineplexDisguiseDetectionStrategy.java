@@ -45,7 +45,8 @@ public final class MineplexDisguiseDetectionStrategy implements DisguiseDetectio
             new SelfKitRule(IRON_AXE, "goat", "Goated Hurr"),
             new SelfKitRule(IRON_AXE, "mooshroom", "Strawberry Swirl"),
             new SelfKitRule(IRON_AXE, "phantom", "Ravenous Membrane"),
-            new SelfKitRule(IRON_SWORD, "phantom", "Soul Swooper")
+            new SelfKitRule(IRON_SWORD, "phantom", "Soul Swooper"),
+            new SelfKitRule(IRON_AXE, "polarbear", "Cub Carrier")
     );
 
     @Override
